@@ -10,6 +10,7 @@ import { fetch } from "service/http";
 import { generateErrorMessage } from "utils/toastHandler";
 import { parseMainUsageRate, syncMainUsageDraft } from "utils/mainUsage";
 import { Input } from "./Input";
+import { MainEgressCard } from "./MainEgressCard";
 
 type Settings = { usage_coefficient: number };
 const queryKey = "main-usage-settings";
@@ -83,5 +84,8 @@ export function MainUsageCard({ enabled }: { enabled: boolean }) {
     <Text mt={2} fontSize="xs" color="gray.500" _dark={{ color: "gray.400" }} aria-live="polite">
       {numericRate !== null ? t("nodes.mainUsage.example", { rate: numericRate }) : t("nodes.mainUsage.enterRate")}
     </Text>
+    <Box mt={3}>
+      <MainEgressCard nodeName={t("nodes.mainUsage.title")} enabled={enabled} />
+    </Box>
   </Box>;
 }

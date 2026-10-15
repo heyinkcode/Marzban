@@ -7,13 +7,14 @@ from app.utils.system import check_port
 from app.xray import operations
 from app.xray.config import XRayConfig
 from app.xray.core import XRayCore
+from app.xray.main_core import ManagedMainCore
 from app.xray.node import XRayNode
 from config import XRAY_ASSETS_PATH, XRAY_EXECUTABLE_PATH, XRAY_JSON
 from xray_api import XRay as XRayAPI
 from xray_api import exceptions, types
 from xray_api import exceptions as exc
 
-core = XRayCore(XRAY_EXECUTABLE_PATH, XRAY_ASSETS_PATH)
+core = ManagedMainCore(XRAY_EXECUTABLE_PATH, XRAY_ASSETS_PATH)
 
 # Search for a free API port
 try:
