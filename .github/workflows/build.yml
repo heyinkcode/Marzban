@@ -34,6 +34,7 @@ jobs:
           unzip -q "$RUNNER_TEMP/relay-xray/xray.zip" -d "$RUNNER_TEMP/relay-xray"
           chmod +x "$RUNNER_TEMP/relay-xray/xray"
           MR_SHAW_RELAY_TEST_XRAY="$RUNNER_TEMP/relay-xray/xray" python -m unittest discover -s tests -p 'test_node_relay_process.py' -v
+          MR_SHAW_RELAY_TEST_XRAY="$RUNNER_TEMP/relay-xray/xray" python -m unittest discover -s tests -p 'test_main_egress*.py' -v
       - uses: actions/setup-node@v4
         with:
           node-version: '18'

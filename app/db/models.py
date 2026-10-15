@@ -5,6 +5,7 @@ from sqlalchemy import (
     JSON,
     BigInteger,
     Boolean,
+    CheckConstraint,
     Column,
     DateTime,
     Enum,
@@ -388,6 +389,19 @@ class NodeEgress(Base):
     username = Column(String(256), nullable=True)
     encrypted_password = Column(String(1024), nullable=True)
     node = relationship("Node", back_populates="egress")
+
+
+class MainEgress(Base):
+    """Optional singleton for the main business core, separate from Node rows."""
+    __tablename__ = "main_egress"
+    __table_args__ = (CheckConstraint("id = 1", name="ck_main_egress_singleton"),)
+    id = Column(Integer, primary_key=True, default=1)
+    protocol = Column(String(8), nullable=False)
+    udp_mode = Column(String(16), nullable=False, default="legacy", server_default="legacy")
+    server = Column(String(253), nullable=False)
+    port = Column(Integer, nullable=False)
+    username = Column(String(256), nullable=True)
+    encrypted_password = Column(String(1024), nullable=True)
 
 
 class NodeUserUsage(Base):

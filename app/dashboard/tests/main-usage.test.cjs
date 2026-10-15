@@ -77,10 +77,15 @@ test('actual React/Chakra card renders the saved rate in all menu languages', as
   }
   const input = loadTs(fs.readFileSync(path.join(root, 'src/components/Input.tsx'), 'utf8'));
   const theme = loadTs(fs.readFileSync(path.join(root, 'chakra.config.ts'), 'utf8')).theme;
+  const http = { fetch: () => { throw new Error('SSR must never contact a server'); } };
+  const diagnostics = loadTs(fs.readFileSync(path.join(root, 'src/components/MainEgressProbe.tsx'), 'utf8'), {'service/http':http});
+  const egress = loadTs(fs.readFileSync(path.join(root, 'src/components/MainEgressCard.tsx'), 'utf8'), {
+    'service/http':http, './MainEgressProbe':diagnostics, 'utils/toastHandler':{generateErrorMessage:()=>{}},
+  });
   const card = loadTs(component, {
     'service/http': { fetch: () => { throw new Error('SSR must never contact a server'); } },
     'utils/toastHandler': { generateErrorMessage: () => {} },
-    'utils/mainUsage': namespace.exports, './Input': input,
+    'utils/mainUsage': namespace.exports, './Input': input, './MainEgressCard': egress,
   }).MainUsageCard;
   for (const lang of ['en', 'zh', 'ru', 'fa']) {
     const strings = JSON.parse(fs.readFileSync(path.join(root, `public/statics/locales/${lang}.json`), 'utf8'));
@@ -88,6 +93,7 @@ test('actual React/Chakra card renders the saved rate in all menu languages', as
     await i18n.init({ lng: lang, resources: { [lang]: { translation: strings } }, interpolation: { escapeValue: false } });
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, cacheTime: Infinity } } });
     client.setQueryData('main-usage-settings', { usage_coefficient: 2.5 });
+    client.setQueryData(['main-egress'], {configured:false});
     const html = renderToString(React.createElement(ChakraProvider, { theme },
       React.createElement(QueryClientProvider, { client }, React.createElement(I18nextProvider, { i18n },
         React.createElement(card, { enabled: true })))));
@@ -95,6 +101,7 @@ test('actual React/Chakra card renders the saved rate in all menu languages', as
     assert.ok(html.includes(strings['nodes.mainUsage.save']), lang);
     assert.match(html, /value="2\.5"/);
     assert.match(html, /data-testid="main-usage-card"/);
+    assert.ok(html.includes(strings['nodes.egress.title']), lang);
     client.clear();
   }
 });

@@ -11,6 +11,7 @@ from app.db import Session, crud, get_db
 from app.dependencies import get_dbnode, validate_dates
 from app.models.admin import Admin
 from app.models.main_usage import MainUsageSettings
+from app.models.main_egress import MainEgressModify, MainEgressProbe
 from app.models.node import (
     NodeCreate,
     NodeModify,
@@ -31,6 +32,8 @@ from app.xray.node_egress import supports_egress
 from app.xray.node_egress_store import public_egress, save_egress
 from app.xray import node_relay_service
 from app.xray import node_egress_service
+from app.xray import main_egress, main_egress_service
+from app.xray.main_core import MainCoreError
 
 router = APIRouter(
     tags=["Node"], prefix="/api", responses={401: responses._401, 403: responses._403}
@@ -83,6 +86,40 @@ def update_main_usage_settings(settings: MainUsageSettings,
     db.commit()
     db.refresh(system)
     return MainUsageSettings(usage_coefficient=system.usage_coefficient)
+
+
+def _main_egress_action(action):
+    try:
+        return action()
+    except MainCoreError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
+    except ValueError:
+        raise HTTPException(422, detail={"code": "MAIN_INVALID_PROFILE"}) from None
+    except Exception:
+        # Never echo subprocess/DB/decryption errors with proxy credentials.
+        raise HTTPException(503, detail={"code": "MAIN_SETTINGS_UNAVAILABLE"}) from None
+
+
+@router.get("/node/main/egress", response_model=NodeEgressResponse)
+def get_main_egress(db: Session = Depends(get_db), _: Admin = Depends(Admin.check_sudo_admin)):
+    return _main_egress_action(lambda: main_egress.public_profile(db))
+
+
+@router.put("/node/main/egress", response_model=NodeEgressResponse)
+def update_main_egress(settings: MainEgressModify, db: Session = Depends(get_db),
+                       _: Admin = Depends(Admin.check_sudo_admin)):
+    return _main_egress_action(lambda: main_egress_service.apply(db, settings.model_dump()))
+
+
+@router.delete("/node/main/egress", response_model=NodeEgressResponse)
+def remove_main_egress(db: Session = Depends(get_db), _: Admin = Depends(Admin.check_sudo_admin)):
+    return _main_egress_action(lambda: main_egress_service.apply(db, None))
+
+
+@router.post("/node/main/egress/test")
+def test_main_egress(settings: MainEgressProbe, db: Session = Depends(get_db),
+                     _: Admin = Depends(Admin.check_sudo_admin)):
+    return _main_egress_action(lambda: main_egress_service.probe(db, settings))
 
 
 @router.get("/node/settings", response_model=NodeSettings)
