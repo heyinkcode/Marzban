@@ -75,6 +75,13 @@ class NodeEgressModify(BaseModel):
     password: Optional[str] = Field(None, max_length=256)
 
 
+class NodeEgressProbe(BaseModel):
+    profile: NodeEgressModify
+    timeout_seconds: Literal[5, 10] = 5
+    attempts: Literal[1, 3] = 1
+    model_config = ConfigDict(extra="forbid")
+
+
 class NodeEgressResponse(BaseModel):
     configured: bool
     udp_mode: str = "legacy"
