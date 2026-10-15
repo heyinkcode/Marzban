@@ -9,6 +9,7 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 - [出口连接检测、失败原因与安全应用](EGRESS_PROBE.md)
 - [Marzban 或 Node 中转到目标 Node](NODE_RELAY_SOURCES.md)
 - [主面板本机使用系数](MAIN_USAGE_COEFFICIENT.md)
+- [主面板本机独立出口与连接检测](MAIN_EGRESS.md)
 - [设备登记、在线用户与策略边界](NODE_ACTIVITY_AND_POLICY.md)
 - [节点控制连接超时与恢复](NODE_CONTROL_RESILIENCE.md)
 - [浏览器翻译兼容](BROWSER_TRANSLATION.md)
@@ -18,9 +19,11 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 
 - [更新记录](../CHANGELOG.md)
 - [接口与兼容性](../MR_SHAW_API_AND_RELEASE.md)
+- [配置与环境变量](CONFIGURATION.md)
 - [更新流程与跨仓库登记](REPOSITORY_UPDATE_FLOW.md)
 - [发布检查清单](../RELEASE_CHECKLIST.md)
 - [历史首页发布记录归档](README_RELEASE_HISTORY.md)
+- [按功能查阅历史发布证据](releases/README.md)
 
 SHA、Actions、镜像摘要、测试和服务器验收状态写入对应功能/发布文档，不再插入产品首页。服务器验收与镜像发布分别记录。
 
