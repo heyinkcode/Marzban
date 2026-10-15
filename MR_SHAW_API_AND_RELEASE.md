@@ -1,252 +1,53 @@
-# Mr.shaw 扩展接口与更新规范
+# 扩展接口索引
 
-## MR-20261015-EGRESS-PROBE（配对镜像已发布，服务器验收待完成）
+本文只维护现行接口入口和副作用；完整字段、错误码、兼容条件见对应合同。历史 API 描述见[按功能归档](docs/releases/README.md)，不能当作现行合同。
 
-发布前验证：主控完整190/190两轮，应用专项8/8再三轮；Node完整80/80两轮，出口/真实核心恢复专项21/21再三轮（含真实子进程、TCP/UDP报文及固定Xray进程，无跳过）；前端60/60、TypeScript/Vite生产构建、pip check和固定入口diff检查通过。原组件HTML已展示，浏览器截图与两台生产服务器验收未执行。真实恢复测试额外发现旧核心进程/日志管道未回收，已修复并复跑；Windows夹具单独补SystemRoot，不修改Linux生产环境。
+## 认证与边界
 
-原出口弹窗新增目标 Node 连接检测，解析/TCP/HTTP或SOCKS5认证/HTTPS出口/DNS与UDP分阶段报告，5/10秒阶段上限、1/3轮、单Node一次、30秒总上限。四语言、原主题/宽度/账号密码/UDP模式保留。只测当前草稿，不保存或重启业务核心；停止等待不取消Node已启动的限时任务。不是客户端或中转整链验收，也不是测速/业务Xray探测。
+下表节点管理接口均在 `/api` 下，要求原超级管理员 Bearer Token。令牌沿用 `POST /api/admin/token`；不得公开管理员凭据、Node 会话或代理密码。全部原版接口以代码和运行实例 OpenAPI 为准。
 
-主控新增sudo POST /api/node/{node_id}/egress/test；既有PUT/DELETE出口接口改为Node重启/API确认后才提交，失败保留保存值，Node启动失败尝试恢复旧配置，ACK丢失明确未确认且不盲目重发。Node新增认证REST /egress/probe、RPyC probe_egress与managed-egress-probe-v1能力。修复密码首尾空格被Node裁剪的问题。两仓库需配对更新；scripts无运行时变化，Xray v26.3.27、数据库迁移/证书/端口/用户/.env/数据卷无变化。
+环境变量不是 API，见[配置说明](docs/CONFIGURATION.md)。Node 内部 REST/RPyC 使用既有认证控制连接，不应暴露为公共监控服务，也不承载中转用户流量。
 
-[合同、错误码、摘要证据与升级验收](docs/EGRESS_PROBE.md)。先更新使用出口检测的目标Node，再更新主控；scripts无运行时变化。
+## 本机、Node 与出口
 
-2026-10-15 发布证据：主控源789130c30a69a85708255154d0d4f6a24c573495，经PR #21合入258218c07c9f2e265e790764bd727e528dcb761d；Node源ce3bed0decccef70c70765f9f59936a8b6a78dc6，经PR #5合入168a9e63d7c5219dffafd5839876db30b57e3cd5。主控分支Actions38670782109、正式38671882097，Node PR38660291647/分支38660285441、正式38671875814均成功；两latest的index/双架构manifest/config摘要与OCI revision已核对。用户要求的额外一轮主控190/190、Node80/80、前端60/60、类型/生产构建/pip check也通过。仅文档[skip ci]回写不改变镜像运行时revision；服务器未更新/验收，不能据此宣称实际供应商或客户端已恢复。
-
-
-## MR-20261008-MAIN-USAGE-COEFFICIENT（镜像已发布，服务器验收待完成）
-
-原节点设置顶部新增独立「主面板（本机）」使用系数，默认1，范围大于0至1000、最多五位小数；只影响本机业务用户计费，不是网速倍率。已有用量不重算，Node系数/透明中转/实际网络统计保持原范围。四语言、原Chakra主题/宽度/证书/端口保留。新增sudo GET/PUT /api/node/main/usage，additive迁移a123bc45de67接9012ab34cd56；Node/scripts无本轮变化，不需更新，Xray v26.3.27不变。
-
-[接口、取整/采集边界、兼容性与验收流程](docs/MAIN_USAGE_COEFFICIENT.md)。本地后端两轮182/182，专项18/18再三轮；前端54/54（含实际组件四语言SSR）、类型/构建/依赖/diff通过。用户已认可HTML提案，自动浏览器视觉验收未执行。源6f65298e、PR #19合并为15a11e9d5bdf884fa860456e3a4ae0602d6783b1；PR CI 37777207870与正式Actions 37777455474成功。latest index sha256:ed5d2641733126431104155f62a447390767f524525e7303f5bfc46741cb5f35，双架构manifest/config/revision核对通过。Node/scripts无需本轮更新；已切换Fork的主控用marzban update，服务器验收未执行。文档[skip ci]回写不改变运行时revision。
-
-
-## MR-20261008-NODE-RELAY-SOURCES（镜像已发布，服务器/视觉验收待完成）
-
-连接方式采用原React/Chakra独立管理弹窗和原信息图标。可选择Marzban主服务器或另一台源Node中转到目标Node；保留原订阅别名、顺序、数量，只替换精确匹配的端点，不新增Relay。目标认证、设备凭据和出口不变。自转发/环路/占用/能力/精确ACK/失败回滚、来源隔离与恢复有回归测试。
-
-管理API增加source/source_node_id/来源列表，additive迁移9012ab34cd56；Node新增managed-node-relay-v1、原认证REST/RPyC完整快照与独立转发进程。固定Xray26.3.27，原证书、控制/API端口、用户、.env与数据卷保留。首版VLESS TCP/RAW REALITY、IPv4/DNS-only入口、单跳选择，不是所有协议或任意UDP转发；每源512个配置不是吞吐承诺。
-
-本地最终代码和独立发布副本再次复测：主控164/164、Node60/60（准备固定Xray，无跳过）、前端47/47、类型/生产构建、依赖/diff通过。干净Linux CI与两镜像双架构发布核对完成；真实跨服务器mTLS、公网吞吐、多引擎数据库、实际原组件UI截图仍待验收，不标稳定版。UI截图因浏览器策略blocked，未绕过。
-
-主控revision 93bfbb5b17dd8ee731449976df1a4af4e0f57ca5，Actions37657985804；Node revision 7b45fc0dc3b4451045a06123b52ccdaaa5911b8d，Actions37657976968。scripts合并ed274ba82410f9e6f580cbec59b2a15a89ab81ea，Actions37657994843成功，脚本运行时不变。先在承担来源的Node运行marzban-node update，再在主控运行marzban update；仅作目标的既有配对Node不强制更新。新Node沿用仓库install，现在拉取新latest；旧机不重装、不删卷、不重复adopt。源业务入口TCP需放行，客户端刷新订阅。
-
-[精确配对SHA、index/架构/config摘要、接口与SSH验收证据](https://github.com/kissow/Marzban/blob/master/docs/NODE_RELAY_SOURCES_RELEASE.md)。下方旧记录只描述各自日期的阶段，不代替本轮最新状态；文档[skip ci]提交不改变已核对的运行时镜像revision。
-
-
-## MR-20261007-RELAY-INTERNAL-SUBSCRIPTION（合同兼容，本地未发布）
-
-四个既有 relay API 的权限、路径、请求和响应字段不变；PUT 新增无匹配 Host/混合地址/业务目的地歧义 422 校验。原 Hosts 持久化保留，订阅输出仅换已匹配条目的端点，别名/数量不变，不再额外输出 Relay。source 仍仅 main；Node→Node 未实现。无迁移/Node协议/scripts命令变化，Node 不需更新。[完整匹配规则、错误、回退与验证](docs/NODE_RELAY_SUBSCRIPTION.md)。
-
-## MR-20261007-NODE-RELAY（新增管理接口，镜像已发布）
-
-新增 sudo Bearer 的 GET /api/nodes/relay/options 与 GET/PUT/DELETE /api/node/{node_id}/relay：direct/relay、source=main、entry_address、allocation=auto/manual、listen_port、inbound_tag；返回配置/目标/本地监听状态。401/403/404/422/409，数据库失败可500且先恢复运行时；无旧接口删除。主服务器可选每 Node TCP 中转，首版仅 VLESS TCP/RAW REALITY、IPv4 入口。原直连条目、用户凭据、REALITY 参数、证书、Node 控制/API/倍率/住宅出口保留；Node/scripts 无本轮运行时或命令变化、不需服务器更新，Xray 固定 v26.3.27。新增四个 sudo API、node_relays additive 迁移 8f9012ab34cd、独立进程及失败恢复；running 仅代表本地监听就绪。
-
-用户已授权先发布。源 134f12faf5e29e53986ff271a8c8f57b8a38db38，PR #16 合入 d23502030358930592016f9ff2f7d3f42acad4e7；PR CI 37637526876 成功（140 项普通后端 + 两项显式真实 Linux Xray、前端44/44、类型/生产构建），本地最终142/142及前端44/44复核通过。正式 Actions 37637973415 首次成功；latest index sha256:252adac60cdcbcc83a7ef13a080d52876876017a65220c58fcf76539db9ccd03 与 amd64/arm64 manifest/config/OCI revision 已核对（d23502030358930592016f9ff2f7d3f42acad4e7）。仅文档回写 [skip ci] 不改变该运行时版本。UI 截图受浏览器管理策略阻止，服务器、公网 REALITY/手机与实际提速仍待验收，不冒称稳定发布。 [完整字段、认证、错误、副作用、兼容与回滚](docs/NODE_RELAY.md)。
-
-## MR-20261007-BROWSER-TRANSLATION（展示兼容，镜像已发布、服务器待验收）
-
-无接口、字段、认证、迁移、命令新增/删除。原 GET /api/hosts、PUT /api/hosts 及 GET /api/inbounds 的请求/响应/权限不变；只保护浏览器 DOM 和包装两个动态状态文本。Node REST/RPyC/HWID/UDP 与正式 Xray v26.3.27 不变；Node/scripts 不需配对更新。PR #14 合入 96599563、正式 Actions 37494615636 成功，latest 双架构摘要/OCI revision 已核对。既有 Fork 主控使用 marzban update 后重新加载页面；面板原语言菜单保留，服务器验收待执行。[源码、测试、精确摘要和上线验收边界](docs/BROWSER_TRANSLATION.md)。
-
-## MR-20261006-CONTROL-RESILIENCE（镜像已发布，服务器验收待完成）
-
-不新增接口、字段、迁移或端口。原 `/api/nodes`、`/api/node/{node_id}` 的 status/message 和异步 `POST /api/node/{node_id}/reconnect` 合同保留，受理不等于连通；日志控制探测异常使用既有关闭码 4400。Node 认证通道不变：仅 `/`、`/ping`、`/health`、`/device-activity` 在网络异常后最多再读一次；改变状态的请求不立即重放。精确 403 Session mismatch 才清除 session。TLS 15s、REST 连接/读取各 10s、REST API 就绪 10s、健康统计 5s、失败退避 30s 均为阶段参数，非全流程硬期限。HWID/订阅合同和正式 Xray v26.3.27 不变。Node/scripts 无变化；新主控镜像已发布，既有 Fork 执行 `marzban update`。PR #12 / `eb43761e` / Actions `37486719383` 与双架构摘要已核对，服务器验收待执行。[完整接口合同、发布证据及上线验收](docs/NODE_CONTROL_RESILIENCE.md)。
-
-## MR-DASHBOARD-I18N-MOBILE：展示层修复，接口不变（镜像已发布，服务器/视觉验收待完成）
-
-`GET /api/users` status 查询仍用 `active/on_hold/disabled/limited/expired`，只翻译显示文案。`GET /api/hosts`、`PUT /api/hosts` 请求/响应/管理员权限及端口转换不变；必填提示只是前端本地化。无接口新增删除、认证变更或数据库迁移。Node REST/RPyC、健康/设备策略协议及部署命令不变，Node/scripts 不需本轮更新；Xray v26.3.27 不变。
-
-本地/Linux CI 语言 34/34、主控 95/95、TypeScript/构建通过。PR #11 合入 `56552130`，Actions `37353281396` 成功，latest 双架构摘要和 OCI revision 已核对；已切换 Fork 的主控使用 `marzban update`，Node 不需更新。响应式源代码约束测试不是实际浏览器验收，服务器/视觉验收仍待完成。[完整发布证据](docs/DASHBOARD_I18N_MOBILE.md)。
-
-## MR-20261006-NODE-RECOVERY：既有接口行为（镜像已发布，服务器验收待完成）
-
-`GET /api/nodes` 与 `GET /api/node/{node_id}` 原 status/message/xray_version 返回合同不变，message 增加内部失败阶段。`POST /api/node/{node_id}/reconnect` 原 sudo-admin 权限/响应不变：200 仅表示异步任务接受，进行中的重复重连可合并，不等于连接成功。`PUT`/`DELETE /api/node/{node_id}` 内部与恢复使用同一节点锁；请求、响应、权限不变。
-
-Node REST/RPyC 方法、认证、字段及健康/设备策略线协议不变；没有新端口、数据库迁移、UI/HWID/UDP/核心变化。已配对 Node/scripts 无需本轮更新；主控镜像已发布：源 `122632c8`、Actions `37340574125`、双架构 OCI revision 核对通过。本地两轮 95/95 与 Linux 95/95 通过，服务器部署/验收未执行。[镜像摘要、完整超时、兼容和验收边界](docs/NODE_RECOVERY_RELEASE.md)。
-
-## MR-20261003-DONATION-LINK：Fork 捐赠入口
-
-镜像发布状态：Actions 37123809995 成功，主面板 latest 的 amd64/arm64 revision 均为 e72943b6dad1abf6ccd58307cb1008bd6793d81f；digest 与服务器更新方式见发布记录。没有 API/协议变更或 Node 更新要求，服务器点击验收尚待确认。
-
-只更改前端 `DONATION_URL` 和中英文 README 的捐赠说明，不是 API 或收款服务。API、数据库、Node 通道、订阅、认证、证书、端口、环境文件、数据卷及 Xray v26.3.27 均无变化；Node/scripts 无需配对构建或服务器更新。[发布记录](docs/DONATION_LINK_RELEASE.md)。
-
-## MR-20261003-EGRESS-UDP：住宅出口合同扩展（镜像已发布，服务器验收待完成）
-
-没有新增路径或认证：sudo 管理员的 `GET/PUT/DELETE /api/node/{node_id}/egress` 沿用原合同。PUT 新增 `udp_mode=legacy|proxy|tcp_only`（省略 legacy），GET 已配置时返回模式；密码仍不回显。HTTP+proxy 或非法模式 422；旧/离线/能力不足 Node 在保存前 409。非 legacy 需要 `managed-outbounds-v1` 和新增 `managed-outbounds-udp-v1`，重连时重复检查。成功写库只代表异步重启已排队，不代表供应商连通性通过。
-
-认证 REST/RPyC 配置通道只添加可选 extension 字段；legacy 为兼容旧 Node 省略此字段。additive 迁移 `7e8f9012ab34` 只增加 `node_egress.udp_mode`，不改用户/节点/凭据。两运行时仓库需要配对发布，scripts/证书/端口/环境/数据卷/核心 v26.3.27 无变化。协议、DNS 替换和显式路由优先级、错误、弃用/回退及验收完整说明见 [NODE_EGRESS_UDP.md](docs/NODE_EGRESS_UDP.md)。当前配对 latest 已发布并核对源提交；真实服务器与供应商仍待验收。
-
-发布证据（配对源 SHA、Actions、两镜像 index/架构 digest/OCI revision、scripts 文档提交）见 [EGRESS_UDP_RELEASE.md](docs/EGRESS_UDP_RELEASE.md)。服务器未验收，不是稳定版。
-
-## 2026-10-03 订阅兼容合同（镜像已发布，服务器验收待完成）
-
-沿用订阅 token 认证、原路径和参数，没有新增接口或迁移：
-
-| 方法和路径 | 输入与结果 | 副作用和限制 |
+| 方法与路径（含 `/api` 前缀） | 作用与副作用 | 合同 |
 | --- | --- | --- |
-| `GET /{XRAY_SUBSCRIPTION_PATH}/{token}` | 无 `X-HWID`：正常订阅为 `200`，使用原共享凭据，不再因 `reject_new` 返回 `428` | 不新增设备记录；共享账号保留，无法强制执行 HWID 限额 |
-| `GET /{XRAY_SUBSCRIPTION_PATH}/{token}/{client_type}` | sing-box/clash-meta/clash/outline/v2ray/v2ray-json 共用同一兼容逻辑 | User-Agent 自动识别路径同样兼容，原格式生成器未改 |
-| 上述两个订阅路由，携带 `X-HWID` | `reject_new` 登记成功返回独立凭据；同 HWID 重用；新 HWID 超额 `429`；无有效登记凭据 `403`；空/过长 HWID 仍为 `400` | 0 不限制数量；成功登记后经现有通道同步共享与独立账号到主核心和在线 Node |
+| GET、PUT `/node/main/usage` | 读取/保存本机使用系数，仅影响后续本机业务计费 | [范围、校验与迁移](docs/MAIN_USAGE_COEFFICIENT.md) |
+| GET、PUT、DELETE `/node/main/egress` | 读取/应用/移除本机出口；仅重启本机业务核心，确认后提交 | [本机合同](docs/MAIN_EGRESS.md) |
+| POST `/node/main/egress/test` | 从主面板本机检测草稿，不保存、不重启业务核心 | [本机检测](docs/MAIN_EGRESS.md) |
+| GET `/node/settings` | 原节点证书设置；保留原证书流程 | [配置](docs/CONFIGURATION.md) |
+| GET `/nodes`、GET `/node/{node_id}` | 读取节点及标识 | [节点路由源码](app/routers/node.py) |
+| POST `/node`、PUT、DELETE `/node/{node_id}` | 原节点增删改；可触发相应生命周期操作 | [节点路由源码](app/routers/node.py) |
+| GET `/node/{node_id}/health` | 资源、活动来源和策略快照，不重置计费统计 | [活动与策略](docs/NODE_ACTIVITY_AND_POLICY.md) |
+| POST `/node/{node_id}/reconnect` | 原异步重连，响应不代表已完成握手 | [控制连接与恢复](docs/NODE_CONTROL_RESILIENCE.md) |
+| GET `/node/{node_id}/egress` | 读取此 Node 的脱敏出口配置，不返回密码 | [出口字段和 UDP](docs/NODE_EGRESS_UDP.md) |
+| PUT、DELETE `/node/{node_id}/egress` | 应用/移除出口；Node 重启与 API 确认后才提交保存值 | [安全应用及失败边界](docs/EGRESS_PROBE.md) |
+| POST `/node/{node_id}/egress/test` | 检测当前草稿；不保存、不重启业务核心 | [请求、结果与错误码](docs/EGRESS_PROBE.md) |
+| GET `/nodes/usage` | 原节点用量查询 | [节点路由源码](app/routers/node.py) |
 
-原鉴权、账号状态、到期与 token 错误行为保持不变；上表的 200 以原订阅有效为前提。无 HWID 或共享配置复制可以绕过 HWID 限额，因此不宣称全客户端或物理设备强制限制。`policy_enforcement` / `direct_connection_enforced` 原 ACK 字段不变，只表示合同/独立凭据支持，不证明所有客户端已被拦截。Node/scripts 运行时、UI、数据库 schema、证书、端口和 Xray `v26.3.27` 无变化；无需 Node 更新。回退使用更新前保存的镜像与配置；回退会重新带回旧版无 HWID 的订阅问题，不删除设备记录或数据卷。发布与服务器验收状态见发布清单。
+出口协议为 `http` 或 `socks`；UDP 模式为 `legacy`、`proxy`、`tcp_only`，其中 proxy 仅 SOCKS5。检测限 5/10 秒阶段超时、1/3 轮、每个执行端一个任务、30 秒总上限。HTTP 200 仍需检查检测结果的 ok/steps；Node ACK 丢失时只能报告结果未确认，不保证运行状态已回滚。本机与 Node 使用不同配置表、检测进程和接口。
 
-发布证据：主面板源 commit `37bab0b113c44ccb2a9db6230ac982b7d2a889a1` / Actions `37090609233` / GHCR `latest` index `sha256:c4bbe88b5b547bbdca3d6b8a4bf1e7c92aeb29ae50b36cd758b7c6eccae2edfc`；配对 Node 源 commit `c135743d1ad26d45538e4c6c7a65a9c6693856a8` / Actions `37090612247` / GHCR `latest` index `sha256:21340918298f0b8647fb7eb360294334891fc219e280a75af5d133c66ee9fbc1`。镜像已经发布，服务器验收仍待完成。
+## 中转
 
-## 2026-10-02 本地接口增补（未发布）
+| 方法与路径 | 用途 |
+| --- | --- |
+| GET `/api/nodes/relay/options` | 可选来源、Node 和目标业务入站 |
+| GET、PUT、DELETE `/api/node/{node_id}/relay` | 读取/保存/清除此目标的中转方式 |
 
-`GET /api/node/{node_id}/health` 增加 Node 活动来源、scope、采样窗口和时间，以及策略数量、revision、同步时间、同步状态与 `direct_connection_enforced=true`。优先保留 Node 原生在线用户，旧 Node 才使用面板近期用量回退。
+`source=main/node`，选择 Node 来源时填写 `source_node_id`。入口填写来源服务器直连地址，目标填写业务入站，不填 Node 控制/API 端口。监听成功不等于目标公网可用；只替换原订阅中精确匹配的实际端点，不追加 Relay 条目。[字段、ACK、错误码与回滚](docs/NODE_RELAY_SOURCES.md) · [订阅合同](docs/NODE_RELAY_SUBSCRIPTION.md)。
 
-Node 内部新增 `POST /device-activity`、`POST /device-policies` 及对应 RPyC 方法；沿用 TLS 认证通道和现有端口。设备数量上限在创建/修改用户 API 统一校验为 0–100000。本轮没有新增数据库迁移；策略确认只表示接收，`reject_new` 仍在带 HWID 的订阅请求时执行。
+## 设备与订阅
 
-完整请求/响应、403/422、原子替换、重试、兼容与回退见 [Node 活动统计与设备策略合同](docs/NODE_ACTIVITY_AND_POLICY.md)。
+既有用户创建/修改接口接受 `device_limit`、`device_limit_mode=hwid`、`device_limit_action=log_only/reject_new`。0 表示不限制登记数量。无 X-HWID 返回共享兼容订阅；携带 HWID 时登记并分配独立凭据，新 HWID 超限返回 429。共享配置可绕过登记限额；不能把策略 ACK 当作全部设备受限的证明。[字段和执行范围](docs/NODE_ACTIVITY_AND_POLICY.md)。
 
-本文说明本 Fork 新增的用户级订阅设备登记限制、节点健康与每 Node 住宅代理功能。原版全部接口仍以代码和运行实例的 OpenAPI 为准；`.env` 变量不是 API，不应把内部 Node 通道暴露给第三方项目。没有填写住宅代理主机、端口等参数时，不会自动生成住宅 IP。
+## Node 内部扩展
 
-跨主面板、Node、脚本的更新登记必须同时填写仓库内的 [`docs/REPOSITORY_UPDATE_FLOW.md`](docs/REPOSITORY_UPDATE_FLOW.md)，并按本仓库的 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) 逐项检查。本文是主面板接口字段的维护源；三仓库的可依赖接口、Node 通道和脚本命令索引也在上述文档中。任何接口、订阅响应、Node 通道或配置字段的变化，都必须在同一个变更中更新本文、总索引、对应 CHANGELOG、README/FORK_FEATURES 和验收清单。
+| REST POST / RPyC 方法 | 合同 |
+| --- | --- |
+| `/health` / `fetch_health()` | [健康与采样](docs/NODE_ACTIVITY_AND_POLICY.md) |
+| `/device-activity` / `fetch_device_activity()` | [活动口径](docs/NODE_ACTIVITY_AND_POLICY.md) |
+| `/device-policies` / `set_device_policies()` | [完整策略快照与认证](docs/NODE_ACTIVITY_AND_POLICY.md) |
+| `/relays/status`、`/relays` / `fetch_relay_status()`、`set_relays()` | [来源能力、完整快照与 ACK](docs/NODE_RELAY_SOURCES.md) |
+| `/egress/probe` / `probe_egress()` | [限时检测、敏感字段与能力](docs/EGRESS_PROBE.md) |
 
-## 三层边界
-
-1. **主面板配置层**：`/opt/marzban/.env` 设置运行环境，`/var/lib/marzban` 保存默认数据库、Xray 配置等数据；路径随实际部署而异。`SUDO_USERNAME`/`SUDO_PASSWORD` 用于初始化管理员，`SQLALCHEMY_DATABASE_URL` 指向数据库，`UVICORN_HOST`/`UVICORN_PORT` 指定 Web 监听，`XRAY_JSON` 指向 Xray 配置文件，`XRAY_EXECUTABLE_PATH` 指向二进制，`XRAY_SUBSCRIPTION_URL_PREFIX` 是订阅 URL 前缀，`DOCS=True` 才显示 `/docs` 和 `/redoc`。这些是进程配置项，不是 HTTP 路径；不要在文档或截图中泄露 `.env`、数据库连接串和密钥。升级不要覆盖已有 `.env`。
-2. **主面板管理员 API**：统一在 `/api` 下；下列节点相关接口均要求现有超级管理员 Bearer Token，不应直接开放给用户端。认证入口为 `POST /api/admin/token`，按原版现有认证流程取令牌；不要把管理员凭据写到浏览器公开脚本或第三方仓库。
-3. **Node 内部通道**：Marzban 通过原有认证连接向对应 Marzban-Node 取指标并下发配置。REST 模式下 Node 的 `POST /health` 需要有效 `session_id`；RPyC 模式使用 `fetch_health`。它们不是面向第三方的公开监控接口，不新增公网监控端口。Node 的 Xray API 端口与住宅代理商提供的端口也不是同一种端口。
-
-## 原版环境变量、接口边界与捐赠入口
-
-截图中 README 的“变量/描述”表不是 HTTP 接口，而是 Marzban 启动时读取的 `.env` 环境变量。完整默认示例以 [`.env.example`](.env.example) 为准；下面按功能说明，新增配置时必须同时更新 `.env.example` 和本文，不要把真实密码、Token、数据库连接串或钱包私钥提交到仓库。
-
-| 配置项 | 作用 | 是否通常需要改动 |
-| --- | --- | --- |
-| `UVICORN_HOST` / `UVICORN_PORT` | Web/API 监听地址和端口 | 按部署端口改；反代场景通常保持默认监听 |
-| `ALLOWED_ORIGINS` | 浏览器跨域来源白名单 | 有独立前端域名时按需填写 |
-| `SUDO_USERNAME` / `SUDO_PASSWORD` | 初始化管理员信息 | 仅首次初始化使用，优先用 CLI 创建管理员 |
-| `UVICORN_UDS` | Unix Socket 监听路径 | 只在 Nginx/本机 Socket 部署时使用 |
-| `UVICORN_SSL_CERTFILE` / `UVICORN_SSL_KEYFILE` / `UVICORN_SSL_CA_TYPE` | 应用自身 HTTPS 证书、密钥和 CA 类型 | 已由反向代理终止 HTTPS 时通常不填 |
-| `DASHBOARD_PATH` | 管理面板路径前缀 | 需要非根路径部署时设置 |
-| `SQLALCHEMY_DATABASE_URL` | SQLite、PostgreSQL、MySQL/MariaDB 数据库连接 | 迁移数据库时设置，升级不能覆盖 |
-| `SQLALCHEMY_POOL_SIZE` / `SQLIALCHEMY_MAX_OVERFLOW` | 数据库连接池参数 | 高并发时按数据库容量调整 |
-| `XRAY_JSON` | Xray JSON 配置文件路径 | 使用自定义配置时设置 |
-| `XRAY_EXECUTABLE_PATH` / `XRAY_ASSETS_PATH` | Xray 二进制和 Geo 资源路径 | 自定义 Xray 安装路径时设置 |
-| `XRAY_SUBSCRIPTION_URL_PREFIX` / `XRAY_SUBSCRIPTION_PATH` | 用户订阅 URL 的域名/前缀和路径 | 订阅域名或路径变化时设置 |
-| `XRAY_EXCLUDE_INBOUND_TAGS` / `XRAY_FALLBACKS_INBOUND_TAG` | 排除入站标签、备用入站标签 | 使用备用/回落入站时设置 |
-| `TELEGRAM_API_TOKEN` / `TELEGRAM_ADMIN_ID` / `TELEGRAM_LOGGER_CHANNEL_ID` | Telegram 机器人、管理员和日志频道 | 启用 Telegram 功能时填写 |
-| `TELEGRAM_DEFAULT_VLESS_FLOW` / `TELEGRAM_PROXY_URL` | Telegram 默认 VLESS flow 和代理 | 按客户端/网络环境按需设置 |
-| `DISCORD_WEBHOOK_URL` | Discord 通知 Webhook | 需要 Discord 通知时填写 |
-| `CUSTOM_TEMPLATES_DIRECTORY` | 自定义订阅模板目录 | 使用自定义模板时设置 |
-| `CLASH_SUBSCRIPTION_TEMPLATE` / `SUBSCRIPTION_PAGE_TEMPLATE` / `HOME_PAGE_TEMPLATE` | Clash、订阅页、首页模板 | 修改订阅或页面外观时设置 |
-| `V2RAY_SUBSCRIPTION_TEMPLATE` / `V2RAY_SETTINGS_TEMPLATE` | V2Ray 订阅和设置模板 | 使用自定义 V2Ray 输出时设置 |
-| `SINGBOX_SUBSCRIPTION_TEMPLATE` / `SINGBOX_SETTINGS_TEMPLATE` | Sing-box 订阅和设置模板 | 使用自定义 Sing-box 输出时设置 |
-| `CLASH_SETTINGS_TEMPLATE` / `USER_AGENT_TEMPLATE` / `GRPC_USER_AGENT_TEMPLATE` | Clash settings and normal/gRPC User-Agent templates | Optional; change only when client output requires it |
-| `MUX_TEMPLATE` | Mux 配置模板 | 需要自定义 Mux 时设置 |
-| `USE_CUSTOM_JSON_DEFAULT` / `USE_CUSTOM_JSON_FOR_V2RAYN` / `USE_CUSTOM_JSON_FOR_V2RAYNG` / `USE_CUSTOM_JSON_FOR_STREISAND` / `USE_CUSTOM_JSON_FOR_HAPP` | 是否为各客户端使用 JSON 配置 | 只有客户端需要 fragment/mux 等能力时启用 |
-| `SUB_PROFILE_TITLE` / `SUB_SUPPORT_URL` / `SUB_UPDATE_INTERVAL` | 订阅响应头中的标题、支持链接和更新间隔 | 按品牌和客户端需要设置 |
-| `EXTERNAL_CONFIG` | 导入外部 V2Ray 配置 | 确认外部地址可信后使用 |
-| `ACTIVE_STATUS_TEXT` / `EXPIRED_STATUS_TEXT` / `LIMITED_STATUS_TEXT` / `DISABLED_STATUS_TEXT` / `ONHOLD_STATUS_TEXT` | 自定义 Active、Expired、Limited、Disabled、On-Hold 文案 | 需要本地化或品牌文案时设置 |
-| `USERS_AUTODELETE_DAYS` / `USER_AUTODELETE_INCLUDE_LIMITED_ACCOUNTS` | 过期用户自动删除策略 | 谨慎设置；负数表示关闭自动删除 |
-| `NOTIFY_STATUS_CHANGE` / `NOTIFY_USER_CREATED` / `NOTIFY_USER_UPDATED` / `NOTIFY_USER_DELETED` / `NOTIFY_USER_DATA_USED_RESET` / `NOTIFY_USER_SUB_REVOKED` / `NOTIFY_IF_DATA_USAGE_PERCENT_REACHED` / `NOTIFY_IF_DAYS_LEFT_REACHED` / `NOTIFY_LOGIN` / `LOGIN_NOTIFY_WHITE_LIST` | 状态、登录、用量和用户变更通知 | 按通知策略设置 |
-| `DOCS` / `DEBUG` | 开启 OpenAPI 文档、调试日志 | 仅开发/排错时临时开启 |
-| `WEBHOOK_ADDRESS` / `WEBHOOK_SECRET` | 多 Webhook 地址和签名密钥 | 对接外部通知服务时设置 |
-| `NOTIFY_DAYS_LEFT` / `NOTIFY_REACHED_USAGE_PERCENT` | 通知触发的剩余天数/用量百分比 | 按业务提醒策略设置 |
-| `VITE_BASE_API` | 前端构建时使用的 API 基地址 | 前后端域名分离或反代路径变化时设置 |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | 管理员 JWT 有效期 | 按安全策略设置 |
-| `JOB_CORE_HEALTH_CHECK_INTERVAL` / `JOB_RECORD_NODE_USAGES_INTERVAL` / `JOB_RECORD_USER_USAGES_INTERVAL` / `JOB_REVIEW_USERS_INTERVAL` / `JOB_SEND_NOTIFICATIONS_INTERVAL` | 核心、Node、用户用量、审核和通知任务间隔（秒） | 高负载时谨慎调整 |
-
-Compatibility note: the current source reads the historical database-pool variable name `SQLIALCHEMY_MAX_OVERFLOW` (one `A` is missing). Do not replace it with the visually corrected `SQLALCHEMY_MAX_OVERFLOW` unless the code and migration notes are changed together. `RECURRENT_NOTIFICATIONS_TIMEOUT`, `NUMBER_OF_RECURRENT_NOTIFICATIONS`, and `DISABLE_RECORDING_NODE_USAGE` are also supported runtime variables and should be documented when they are enabled.
-
-### 捐赠菜单到底改哪里
-
-当前“捐赠”菜单不是收款接口，也不会调用任何外部收款服务。它由三处组成：
-
-1. 菜单项和点击行为：[`app/dashboard/src/components/Header.tsx`](app/dashboard/src/components/Header.tsx) 的 `Link`、`header.donation` 和 `handleOnClose`。
-2. 菜单跳转地址：[`app/dashboard/src/constants/Project.ts`](app/dashboard/src/constants/Project.ts) 的 `DONATION_URL`。当前值是 `https://github.com/kissow/Marzban#donation`，点击后打开本 Fork 的捐赠锚点。修改此常量后必须重新构建主面板镜像并更新服务器；只推送 README 不会替换已经运行的前端。
-3. README 中展示的钱包地址：[`README.md`](README.md) 和 [`README-zh-cn.md`](README-zh-cn.md) 的 `Donation/捐赠` 小节。修改钱包地址时必须同时更新中英文 README，并核对网络名称，不能只改菜单 URL。
-
-当前前端没有独立的捐赠管理页面，也没有捐赠订单、到账监控或二维码生成逻辑。若以后要接入数字货币收款，应作为独立支付功能开发，不能把钱包地址硬编码到管理端或用户端脚本中。
-
-## 在 GitHub 仓库构建，服务器只拉取镜像
-
-本 Fork 的生产镜像由仓库的 `.github/workflows/build.yml` 构建，不要求每次登录服务器编译。该工作流在 `master` 分支 push 或手动运行时执行后端单元测试、Dashboard TypeScript/Vite 构建，并发布多架构镜像 `ghcr.io/kissow/marzban:latest`；`docs/*`、`feature/*` 等普通分支不会覆盖生产 `latest`。
-
-### 发布一次更新
-
-1. 在本地完成功能、`CHANGELOG.md`、接口文档和验收记录，运行 `git diff --check`、后端测试和前端构建。
-2. 推送到 Fork 的功能/文档分支，确认检查通过后合并到 `master`。不要直接把未验收的分支当作生产镜像。
-3. 打开 GitHub 仓库的 **Actions → Mr.shaw fork image**，选择 `master`，点击 **Run workflow**；或者直接 push `master` 让它自动触发。
-4. 等待 `verify-and-build` 全部成功，再检查该运行对应的 commit SHA 和 `ghcr.io/kissow/marzban:latest` 的发布时间/摘要。Actions 失败或 `latest` 尚未发布时，服务器不要更新。
-
-### 服务器更新（仅拉取，不构建）
-
-先进入服务器实际的 Marzban Compose 目录，确认 `docker-compose.yml` 使用的是 `ghcr.io/kissow/marzban:latest`，并备份 `.env` 与 `/var/lib/marzban`。然后执行：
-
-```bash
-cd /实际的/marzban目录
-cp .env ".env.backup.$(date +%Y%m%d-%H%M%S)"
-sudo tar -C /var/lib -czf "/root/marzban-data-backup-$(date +%Y%m%d-%H%M%S).tar.gz" marzban
-docker compose pull marzban
-docker compose up -d --no-build marzban
-docker compose ps
-docker compose logs --tail=100 marzban
-```
-
-只更新镜像和容器，不执行 `docker compose down -v`，不删除容器卷，不覆盖 `.env`、数据库、证书、端口、Xray 配置或 Node 配置。若部署不是 Compose，而是已安装的 `marzban` 管理脚本，则先执行 `sudo marzban status` 确认脚本版本，再按该脚本的 `update` 流程操作；两种部署方式不要混用。
-
-### 更新后的验收顺序
-
-先确认容器为 `Up`、迁移日志无错误，再登录管理面板检查管理员、用户、订阅、证书、端口和节点；最后逐台检查 Node、订阅导入和住宅出口。只有验收通过后，才在 `CHANGELOG.md` 把“未发布”条目标记为已发布，并记录实际 commit SHA、镜像摘要、备份文件和回滚方法。
-
-## 本 Fork 节点 API 速查
-
-2026-09-30 `mrshaw-v0.8.4-preview.4`（已发布）仅调整节点弹窗布局：最大宽度 800px，刷新按钮从最右端移至运行指标标题旁边，五项指标铺满可用内容区；API 请求、响应、权限和 Node 通道无变化，无需更新 Node。本机真实组件桌面/手机渲染已确认；Actions `36726339140` 成功，合并 SHA `ee96a1b8afe8fd638d75fe9b5975124268a02736`，`ghcr.io/kissow/marzban:latest` index 摘要 `sha256:e1ad34e5a0b4bd73811cc7d14f05b2f51641da80919a7b9224a0a4b469b58fdd`，amd64/arm64 revision 均匹配；服务器截图仍需在镜像发布后验收。
-
-| 方法和路径（Marzban） | 用途与返回 | 写入/副作用 |
-| --- | --- | --- |
-| `GET /api/nodes` | 列出节点及 ID，供选择 `node_id`；原版接口 | 无 |
-| `GET /api/node/settings` | 原版证书设置，节点安装时使用；不要删除或替换 | 无 |
-| `GET /api/node/{node_id}/health` | 返回此 Node 的 `status`、`reason`、`metrics`，包含采样时间、CPU、内存、根目录磁盘、运行时间、数据来源；主面板可在 `metrics` 中补充最近 2 小时有正流量的去重用户及采样原因；离线或过期时 `metrics=null` | 通过已认证通道读取 Node，并查询主面板 `NodeUserUsage`；不写数据 |
-| `GET /api/node/{node_id}/egress` | 返回 `configured`、协议、`udp_mode`、服务器、端口、用户名、`has_password`；**不返回密码** | 无；`udp_mode` 为本地未发布扩展 |
-| `PUT /api/node/{node_id}/egress` | 保存该 Node 唯一的 HTTP/SOCKS5 代理。字段：`protocol`（`http`/`socks`）、`server`（代理商域名或 IP）、`port`（1–65535）、可选成对的 `username`/`password`、`udp_mode`（省略 legacy；proxy/tcp_only）。同用户名且密码留空可保留原密码 | 检查 `managed-outbounds-v1`；非 legacy 另检查 `managed-outbounds-udp-v1`；加密保存并异步重启。旧/离线/能力不足 409，参数或 HTTP+proxy 不合法 422；新模式本地未发布 |
-| `DELETE /api/node/{node_id}/egress` | 清除该 Node 的代理设置 | 删除配置并异步重启该 Node，恢复原有默认路由 |
-| `POST /api/node/{node_id}/reconnect` | 原版重连入口；排查离线 Node | 异步重连 |
-
-Node 响应 `source=node-runtime` 与 `capabilities=["managed-outbounds-v1"]` 是扩展兼容性标记。主面板仅接受新鲜且合法的快照（超过 15 秒或异常则不展示为实时数据）。Node 原始快照没有可靠的在线用户来源时，`active_users` 为 `null`；主面板可根据最近 2 小时 `NodeUserUsage` 的正流量记录补充去重用户数，并返回 `active_users_window_hours`、`active_users_sampled_at` 和 `active_users_reason`。该值不是 Xray 实时在线连接数，不得用总在线数或 TCP 连接数填充。
-
-节点管理弹窗在节点标题栏下方、证书区上方显示连接状态与原因：`node.message` 有值时优先显示后端原因，否则按 `connecting`、`error`、`disabled` 显示本地化兜底文案。`connecting` 和 `error` 状态提供“重新连接”按钮并调用上面的 `POST /api/node/{node_id}/reconnect`；`disabled` 只显示停用原因，不提供重连按钮。此项只改官方 Chakra UI 的原节点弹窗，不删除证书、端口、启用、保存或删除字段。
-
-住宅代理地址从代理服务商取得，不填 Marzban 主面板地址、Node 地址、Node 的服务端口或 Xray API 端口。legacy 下 HTTP 只接管默认 TCP、UDP 按原路由；未发布新模式的 DNS 上游替换、显式路由优先级及其他 UDP 阻断边界见上方合同。保存操作只是排队重启，HTTP 成功**不等于**住宅代理可连通：还要复查 Node 运行日志、出站公网 IP 和原订阅可用性。本功能尚无代理失效自动摘除和自动回滚。
-
-## 每次更新必须执行的流程
-
-适用于主面板、Node、安装脚本、UI 和 API；即使只修布局，也要说明“接口无变化”。
-
-1. **确定基线**：记录本次主面板/Node/脚本提交 SHA、当前镜像摘要、影响范围和原有数据路径。保护 `.env`、数据库、证书、端口、Xray 配置和用户记录；不在旧样式后叠加补丁，应修改原规则。预览稿必须和实际 Chakra 组件使用同一宽度/断点；截图验收要记录浏览器缩放与视口大小。
-2. **写更新说明**：在对应仓库 `CHANGELOG.md` 的“未发布”条目写清改动、用户可见差异、兼容性及回退风险；不要把尚未打包的提交写成已发布版本。跨主面板和 Node 的功能，两边均要记录配对版本或 SHA。
-3. **核对接口清单**：新增/修改/删除 API 时同步更新本文，逐项写 HTTP 方法、路径、权限、请求、响应、错误码、副作用、Node 通道和兼容约束。仅改 UI 时明确写“API 无变更”。更改配置项则同步更新配置表、示例与迁移说明；绝不提交真实密钥。
-4. **测试并记录证据**：后端单测、前端 TypeScript/Vite、Node 单测/Xray 配置预检、迁移升级/回滚；检查旧用户、证书、端口、订阅和节点连接。真机桌面与窄屏逐项核对；出现问题先修再重测，更新 `05-检测测试验收清单.md` 的结果和剩余风险。
-5. **先测试后发布**：先在隔离环境测试升级。CI 成功后核对镜像确实对应预期 SHA（不能只看仓库代码已提交），再公布可执行的服务器更新命令。`latest` 未发布成功时不得让服务器提前更新。Node/主面板协议变化需配对发布并按兼容顺序升级。
-6. **部署与验收**：已有安装使用 `adopt`（首次从官方切 Fork）或 `update`（已在 Fork）；新机才用 `install`。先备份并核验，再更新主面板、逐台 Node，最后检查容器、日志、用户、订阅、节点、出站及桌面/手机端。不要用 `down -v` 或覆盖数据目录。正式发布记录写入两边实际提交 SHA、镜像摘要、测试结果和已知限制。
-
-发布检查：代码、`CHANGELOG.md`、本文接口表、相应 README/FORK_FEATURES、验收清单必须一起审查；任一项缺失不发布镜像/更新指令。仅改文档也要说明其对应代码版本，不能把尚未实现的功能写成可用。
-
-## 接口变更登记模板（强制）
-
-新增、修改或删除 HTTP、WebSocket、订阅响应、Node 内部 REST/RPyC 方法或配置字段时，在本文件对应接口表旁补充以下信息，并在变更登记卡中引用代码 commit 和测试证据：
-
-```text
-方法和完整路径/方法名：
-认证与权限边界：
-请求字段、类型、必填性、默认值和敏感字段：
-成功响应状态、字段和脱敏规则：
-错误状态码、错误体和触发条件：
-数据库、缓存、队列、异步重启等副作用：
-Node 通道、能力标识、最低配对版本和旧 Node 行为：
-订阅/客户端兼容范围：
-弃用周期、替代路径和回滚方案：
-契约测试、权限测试、迁移测试和隔离/真实环境证据：
-```
-
-删除接口不能只删除路由：必须记录旧客户端的错误行为、替代路径、数据迁移和恢复方法。只改 UI 或文案时，也要明确写出 `API、数据库、Node 通道、证书和端口无变化`，避免把 UI 变化误当成接口发布。
-## MR-20261003-NODE-CONNECT / SCHEDULER-DEPENDENCY 接口登记
-
-本轮不新增或修改公开 API 路径、权限、请求/响应字段和数据库 schema。
-既有 `POST /api/node/{node_id}/reconnect` 仍异步执行；主控先建立 Node 认证会话，
-再执行非 legacy 出口健康/能力检查和启动；失败原因仍使用节点原有 `message`。
-Node REST/RPyC 线协议不变，已配对 Node/scripts 不需本轮更新，Xray v26.3.27 不变。
-APScheduler 锁定 3.11.3；仅主控依赖变化。[合同、测试和发布记录](docs/NODE_CONNECTION_RELEASE.md)。
+接口变更需要同步请求、响应、权限、错误、副作用、能力和旧版本行为。完整登记要求及发布步骤见[更新流程](docs/REPOSITORY_UPDATE_FLOW.md)；不要把每次测试日志复制到本索引。
