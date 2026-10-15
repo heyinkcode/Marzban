@@ -1,9 +1,3 @@
-> **MR-DASHBOARD-I18N-MOBILE（镜像已发布，服务器/视觉验收待完成）：** 完善 en/fa/zh/ru 共用文案、在线/到期相对时间和日历语言。原设置入站桌面保持 440px，手机按视口收窄，长标题和帮助文字可换行。PR #11 合入 `56552130`，Actions `37353281396` 成功，latest 双架构摘要和 OCI revision 已核对。本地/Linux CI 语言 34/34、主控 95/95、TypeScript 与生产构建通过。API/数据库/Node/scripts/Xray 不变，已配对 Node 不需更新。真实手机视觉与服务器验收仍待完成。[新镜像摘要、范围和更新命令](docs/DASHBOARD_I18N_MOBILE.md)。下方发布摘要为历史记录，不是本次 latest 的源提交或摘要。
-
-> **节点连接恢复（镜像已发布，服务器验收待完成）：** 增加节点生命周期互斥、隔离健康恢复、阶段性失败原因、TLS 握手超时及安全重试。两轮本地全量 95/95 与 Linux CI 通过；PR #10 合入 `122632c8`，Actions `37340574125` 成功，`ghcr.io/kissow/marzban:latest` 双架构 OCI revision 已核对。UI/API/数据库/Node 线协议/Xray 不变，已配对 Node 和 scripts 无需本轮更新。[新镜像摘要、范围、接口含义及服务器验收闸门](docs/NODE_RECOVERY_RELEASE.md)。本轮未执行服务器部署与真实网络验收。
-
-> **节点初连/调度器维护（2026-10-03，镜像已发布，服务器验收待完成）：** 非 legacy 出口先建立已有认证会话，再检查健康并启动；保留具体错误原因。APScheduler 固定到 3.11.3，消除 pkg_resources 弃用依赖。本地/Linux CI 69/69、前端检查通过；源 `78e7b8e`、Actions `37135175798` 成功，双架构 latest 和 OCI revision 已核对。API/数据库/UI/证书/端口/HWID/Xray 不变，已配对 Node 与 scripts 本轮不需更新。[兼容、测试和发布证据](docs/NODE_CONNECTION_RELEASE.md)。下方镜像记录属于此前发布。
-
 <p align="center">
   <a href="https://github.com/gozargah/marzban" target="_blank" rel="noopener noreferrer">
     <picture>
@@ -59,14 +53,13 @@
  </a>
 </p>
 
-> **Mr.shaw 开源二开版：** 保留原版 Marzban 功能，新增逐节点状态、每个 Node 独立的一条住宅 IP 出口和用户级设备登记限制。已实现内容、接口、测试证据与发布状态请看 [二开功能](FORK_FEATURES.md)、[更新记录](CHANGELOG.md)、[接口与发布规范](MR_SHAW_API_AND_RELEASE.md) 和 [仓库更新流程](docs/REPOSITORY_UPDATE_FLOW.md)。设备限制目前已完成本地测试，但仍未完成真实客户端、Linux/PostgreSQL 和生产验收，尚未作为正式版本发布。
+> **Marzban 社区扩展版：** 基于 [Gozargah/Marzban](https://github.com/Gozargah/Marzban)，提供逐节点出口管理、中转、运行状态及 HWID 登记控制。使用方法和能力边界见 [功能说明](FORK_FEATURES.md) 与 [文档中心](docs/README.md)。
 
 <p align="center">
   <a href="https://github.com/gozargah/marzban" target="_blank" rel="noopener noreferrer" >
     <img src="https://github.com/Gozargah/Marzban-docs/raw/master/screenshots/preview.png" alt="Marzban screenshots" width="600" height="auto">
   </a>
 </p>
-
 
 ## 目录
 - [概览](#概览)
@@ -82,12 +75,9 @@
 - [许可](#许可)
 - [贡献者](#贡献者)
 
-
 # 概览
 
 Marzban（Marzban一词源自波斯语，意为“边境警卫”，发音为 /mærz'ban/）是一个代理管理工具，提供简单易用的用户界面，可管理数百个代理账户，由 [Xray-core](https://github.com/XTLS/Xray-core) 提供支持，使用 Python 和 Reactjs 构建。
-
-
 
 ## 为什么要使用 Marzban?
 
@@ -110,7 +100,6 @@ Marzban 是一个用户友好、功能丰富且可靠的工具。它让您可以
 - **TLS** 支持
 - 集成的 **Telegram Bot**
 - **多管理员**支持（WIP）
-
 
 # 安装指南
 运行以下命令以使用 SQLite 数据库安装 Marzban。
@@ -320,14 +309,16 @@ server {
 | USE_CUSTOM_JSON_FOR_STREISAND            | Enable custom JSON config only for Streisand (default: `False`)                                                         |
 | USE_CUSTOM_JSON_FOR_V2RAYN               | Enable custom JSON config only for V2rayN (default: `False`)                                                            |
 
-
 # 文档
-[Marzban 文档](https://gozargah.github.io/marzban) 提供了所有必要的入门指南，支持三种语言：波斯语、英语和俄语。要全面覆盖项目的各个方面，这些文档需要大量的工作。我们欢迎并感谢您的贡献，以帮助我们改进文档。您可以在这个 [GitHub 仓库](https://github.com/Gozargah/gozargah.github.io) 中进行贡献。
 
+- [扩展功能使用文档](docs/README.md)
+- [更新记录](CHANGELOG.md)
+- [接口与兼容性](MR_SHAW_API_AND_RELEASE.md)
+
+[Marzban 文档](https://gozargah.github.io/marzban) 提供了所有必要的入门指南，支持三种语言：波斯语、英语和俄语。要全面覆盖项目的各个方面，这些文档需要大量的工作。我们欢迎并感谢您的贡献，以帮助我们改进文档。您可以在这个 [GitHub 仓库](https://github.com/Gozargah/gozargah.github.io) 中进行贡献。
 
 # 如何使用 API
 Marzban 提供了 REST API，使开发人员能够以编程方式与 Marzban 服务进行交互。要在 Swagger UI 或 ReDoc 中查看 API 文档，设置配置变量 `DOCS=True`，然后导航到 `/docs` 和 `/redoc`。
-
 
 # 如何备份 Marzban
 
@@ -355,7 +346,6 @@ marzban backup
 
 按照这些步骤，您可以确保有备份所有 Marzban 文件和数据，以及您的配置变量和 Xray 配置，以备将来恢复使用。请记得定期更新备份，以保持它们的最新性。
 
-
 # Telegram bot
 
 Marzban 配备了一个集成的 Telegram bot，可以处理服务器管理、用户创建和删除，以及发送通知。通过几个简单的步骤，您可以轻松地启用这个机器人，并提供了一种方便的方式与 Marzban 交互，而不需要每次都登录到服务器上。
@@ -365,16 +355,14 @@ Marzban 配备了一个集成的 Telegram bot，可以处理服务器管理、�
 1. 将 `TELEGRAM_API_TOKEN` 设置为您的 bot API Token。
 2. 将 `TELEGRAM_ADMIN_ID` 设置为您的 Telegram ID，您可以从 [@userinfobot](https://t.me/userinfobot) 中获取自己的 ID。
 
-
 # 捐赠
 
-2026-10-03 捐赠入口对应的新主面板镜像已经发布；Actions 37123809995 和两种架构的 OCI revision 均核对通过。已切换 Fork 的主面板使用 `marzban update`，Node 不需更新；[发布证据与更新说明](docs/DONATION_LINK_RELEASE.md)。服务器更新后的点击验收待维护者确认。
+
 
 以下地址用于支持 **Mr.shaw 社区 Fork** 的开发与维护。本 Fork 基于 [Gozargah/Marzban](https://github.com/Gozargah/Marzban)，感谢原作者和贡献者。如果希望支持原项目，请访问[上游捐赠说明](https://github.com/Gozargah/Marzban#donation)。
 
 - USDT•TRON (TRC20)：`TXWN1uwo9X6mXizcb4hJPTquEmvWWgMftU`
 - USDT•BNB Smart Chain (BEP20)：`0xeC3f0fb7B6F4003A903bB3d75853115dCA6BF078`
-
 
 感谢您的支持！
 
@@ -387,8 +375,6 @@ Marzban 配备了一个集成的 Telegram bot，可以处理服务器管理、�
 我们热爱贡献者！如果您想做出贡献，请查看我们的[贡献指南](CONTRIBUTING.md)并随时提交拉取请求或打开问题。我们也欢迎您加入我们的 [Telegram](https://t.me/gozargah_marzban) 群组，以获得支持或贡献指导。
 
 查看 [issues](https://github.com/gozargah/marzban/issues) 以帮助改进这个项目。
-
-
 
 <p align="center">
 感谢所有为改善 Marzban 做出贡献的贡献者们：
