@@ -19,6 +19,7 @@ from app.models.node import (
     NodeStatus,
     NodesUsageResponse,
     NodeEgressModify,
+    NodeEgressProbe,
     NodeEgressResponse,
     NodeRelayModify,
     NodeRelayResponse,
@@ -29,6 +30,7 @@ from app.xray.node_health import normalize_node_health
 from app.xray.node_egress import supports_egress
 from app.xray.node_egress_store import public_egress, save_egress
 from app.xray import node_relay_service
+from app.xray import node_egress_service
 
 router = APIRouter(
     tags=["Node"], prefix="/api", responses={401: responses._401, 403: responses._403}
@@ -218,13 +220,25 @@ def update_node_egress(
     db: Session = Depends(get_db),
     _: Admin = Depends(Admin.check_sudo_admin),
 ):
-    require_managed_egress(dbnode, settings.udp_mode)
     try:
-        save_egress(db, dbnode, settings.model_dump())
+        result = node_egress_service.apply(db, dbnode, settings.model_dump())
+        bg.add_task(xray.operations.sync_all_node_device_accounts)
+        return result
+    except node_egress_service.EgressError as exc:
+        raise HTTPException(exc.status, {"code": exc.code}) from None
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    bg.add_task(xray.operations.restart_node, node_id=dbnode.id)
-    return public_egress(db, dbnode)
+
+
+@router.post("/node/{node_id}/egress/test")
+def test_node_egress(settings: NodeEgressProbe, dbnode=Depends(get_dbnode),
+                     db: Session = Depends(get_db), _: Admin = Depends(Admin.check_sudo_admin)):
+    try:
+        return node_egress_service.probe(db, dbnode, settings)
+    except node_egress_service.EgressError as exc:
+        raise HTTPException(exc.status, {"code": exc.code}) from None
+    except ValueError:
+        raise HTTPException(422, {"code": "INVALID_PROFILE"}) from None
 
 
 @router.delete("/node/{node_id}/egress")
@@ -234,11 +248,12 @@ def remove_node_egress(
     db: Session = Depends(get_db),
     _: Admin = Depends(Admin.check_sudo_admin),
 ):
-    if dbnode.egress is not None:
-        db.delete(dbnode.egress)
-        db.commit()
-        bg.add_task(xray.operations.restart_node, node_id=dbnode.id)
-    return {"configured": False}
+    try:
+        result = node_egress_service.apply(db, dbnode, None)
+        bg.add_task(xray.operations.sync_all_node_device_accounts)
+        return result
+    except node_egress_service.EgressError as exc:
+        raise HTTPException(exc.status, {"code": exc.code}) from None
 
 
 @router.websocket("/node/{node_id}/logs")

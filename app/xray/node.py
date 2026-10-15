@@ -239,6 +239,12 @@ class ReSTXRayNode:
             raise ConnectionError("Node is not connected")
         return self.make_request("/relays", timeout=(10, 40), profiles=profiles)
 
+    def probe_egress(self, profile, timeout=5, attempts=1):
+        if not self._session_id:
+            raise ConnectionError("Node is not connected")
+        return self.make_request("/egress/probe", timeout=(10, 35), profile=profile,
+                                 attempts=attempts, timeout_seconds=timeout)
+
     def start(self, config: XRayConfig):
         if not self.connected:
             self.connect()
@@ -518,6 +524,9 @@ class RPyCXRayNode:
 
     def get_relay_status(self):
         return self._relay_rpc("fetch_relay_status")
+
+    def probe_egress(self, profile, timeout=5, attempts=1):
+        return self._relay_rpc("probe_egress", json.dumps({"profile": profile, "timeout": timeout, "attempts": attempts}))
 
     def set_relays(self, profiles):
         return self._relay_rpc("set_relays", json.dumps(profiles))

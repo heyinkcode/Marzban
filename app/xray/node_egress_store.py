@@ -60,8 +60,8 @@ def public_egress(db, dbnode):
     }
 
 
-def save_egress(db, dbnode, profile):
-    """Create or update the row whose primary key is the Node ID."""
+def prepare_egress(db, dbnode, profile):
+    """Resolve a draft without persisting or exposing the saved password."""
     row = dbnode.egress
     candidate = dict(profile)
     preserve_password = bool(
@@ -74,6 +74,15 @@ def save_egress(db, dbnode, profile):
     if preserve_password:
         candidate["password"] = _decrypt(db, row.encrypted_password)
     value = validate_egress(candidate)
+    return value
+
+
+def save_egress(db, dbnode, profile):
+    """Create or update the row whose primary key is the Node ID."""
+    row = dbnode.egress
+    value = prepare_egress(db, dbnode, profile)
+    preserve_ciphertext = bool(row is not None and row.encrypted_password and row.username == value["username"]
+                               and _decrypt(db, row.encrypted_password) == value["password"])
 
     if row is None:
         row = NodeEgress(node=dbnode)
@@ -83,6 +92,6 @@ def save_egress(db, dbnode, profile):
     row.server = value["server"]
     row.port = value["port"]
     row.username = value["username"]
-    if not preserve_password:
+    if not preserve_ciphertext:
         row.encrypted_password = _encrypt(db, value["password"])
     db.commit()

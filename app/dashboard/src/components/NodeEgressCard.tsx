@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { fetch } from "service/http";
 import { generateErrorMessage } from "utils/toastHandler";
+import { EgressProbe, egressErrorCode } from "./EgressProbe";
 
 type Protocol = "http" | "socks";
 type UdpMode = "legacy" | "proxy" | "tcp_only";
@@ -68,7 +69,7 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
       modal.onClose();
       toast({ status: "success", title: t("nodes.egress.saved") });
     },
-    onError: (error) => { generateErrorMessage(error, toast); },
+    onError: (error) => { toast({status:"error",title:t(`nodes.egressProbe.code.${egressErrorCode(error)}`,{defaultValue:t("nodes.egressProbe.unknown")})}); },
   });
 
   const clear = useMutation(() => fetch(`/node/${nodeId}/egress`, { method: "DELETE" }), {
@@ -77,7 +78,7 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
       modal.onClose();
       toast({ status: "success", title: t("nodes.egress.cleared") });
     },
-    onError: (error) => { generateErrorMessage(error, toast); },
+    onError: (error) => { toast({status:"error",title:t(`nodes.egressProbe.code.${egressErrorCode(error)}`,{defaultValue:t("nodes.egressProbe.unknown")})}); },
   });
 
   const openManager = () => {
@@ -107,11 +108,11 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
         isDisabled={!enabled || !data} flexShrink={0}>{t("nodes.egress.manage")}</Button>
     </HStack>
 
-    <Modal isOpen={modal.isOpen} onClose={modal.onClose} size="lg" isCentered scrollBehavior="inside">
+    <Modal isOpen={modal.isOpen} onClose={() => { if (!save.isLoading && !clear.isLoading) modal.onClose(); }} size="lg" isCentered scrollBehavior="inside">
       <ModalOverlay />
       <ModalContent mx={3}>
         <ModalHeader fontSize="md">{nodeName} · {t("nodes.egress.manage")}</ModalHeader>
-        <ModalCloseButton />
+        <ModalCloseButton isDisabled={save.isLoading || clear.isLoading} />
         <ModalBody pt={0}>
           <Alert status="info" mb={4} borderRadius="md" alignItems="flex-start">
             <AlertIcon /><Text fontSize="xs">{t("nodes.egress.hint")}</Text>
@@ -120,7 +121,7 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
               <FormControl>
                 <FormLabel fontSize="sm">{t("nodes.egress.protocol")}</FormLabel>
-                <Select size="sm" value={form.protocol}
+                <Select size="sm" value={form.protocol} isDisabled={save.isLoading || clear.isLoading}
                   onChange={(e) => setForm((current) => ({ ...current,
                     protocol: e.target.value as Protocol,
                     udp_mode: e.target.value === "http" && current.udp_mode === "proxy" ? "legacy" : current.udp_mode,
@@ -136,7 +137,7 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
                       fontSize="xs" color="gray.500" cursor="help">ⓘ</Text>
                   </Tooltip>
                 </FormLabel>
-                <Select size="sm" value={form.udp_mode} onChange={(e) => set("udp_mode", e.target.value)}>
+                <Select size="sm" value={form.udp_mode} isDisabled={save.isLoading || clear.isLoading} onChange={(e) => set("udp_mode", e.target.value)}>
                   <option value="legacy">{t("nodes.egress.udpLegacy")}</option>
                   <option value="proxy" disabled={form.protocol !== "socks"}>{t("nodes.egress.udpProxy")}</option>
                   <option value="tcp_only">{t("nodes.egress.udpTcpOnly")}</option>
@@ -144,17 +145,17 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
               </FormControl>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">{t("nodes.egress.server")}</FormLabel>
-                <Input size="sm" value={form.server} placeholder="proxy.example.com"
+                <Input size="sm" value={form.server} placeholder="proxy.example.com" isDisabled={save.isLoading || clear.isLoading}
                   onChange={(e) => set("server", e.target.value)} />
               </FormControl>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">{t("nodes.egress.port")}</FormLabel>
-                <Input size="sm" type="number" value={form.port}
+                <Input size="sm" type="number" value={form.port} isDisabled={save.isLoading || clear.isLoading}
                   onChange={(e) => set("port", e.target.value)} />
               </FormControl>
               <FormControl>
                 <FormLabel fontSize="sm">{t("nodes.egress.username")}</FormLabel>
-                <Input size="sm" value={form.username}
+                <Input size="sm" value={form.username} isDisabled={save.isLoading || clear.isLoading}
                   onChange={(e) => set("username", e.target.value)} />
               </FormControl>
               <FormControl>
@@ -165,21 +166,24 @@ export const NodeEgressCard: FC<{ nodeId: number; nodeName: string; enabled?: bo
                       fontSize="xs" color="gray.500" cursor="help">ⓘ</Text>
                   </Tooltip>
                 </FormLabel>
-                <Input size="sm" type="password" value={form.password}
+                <Input size="sm" type="password" value={form.password} isDisabled={save.isLoading || clear.isLoading}
                   placeholder={data?.has_password ? "••••••••" : ""}
                   onChange={(e) => set("password", e.target.value)} />
               </FormControl>
             </SimpleGrid>
+            <EgressProbe nodeId={nodeId} nodeName={nodeName} disabled={!canSave || save.isLoading || clear.isLoading}
+              draft={{protocol:form.protocol,udp_mode:form.udp_mode,server:form.server.trim(),port:Number(form.port),
+                username:form.username.trim() || null,password:form.password || null}} />
           </Stack>
         </ModalBody>
         <ModalFooter gap={2} flexWrap="wrap">
           {data?.configured && <Button size="sm" variant="ghost" colorScheme="red" mr="auto"
-            onClick={() => clear.mutate()} isLoading={clear.isLoading}>
+            onClick={() => clear.mutate()} isLoading={clear.isLoading} isDisabled={save.isLoading}>
             {t("nodes.egress.clear")}
           </Button>}
-          <Button size="sm" onClick={modal.onClose}>{t("cancel")}</Button>
+          <Button size="sm" onClick={modal.onClose} isDisabled={save.isLoading || clear.isLoading}>{t("cancel")}</Button>
           <Button size="sm" colorScheme="primary" onClick={() => save.mutate()}
-            isLoading={save.isLoading} isDisabled={!canSave}>
+            isLoading={save.isLoading} isDisabled={!canSave || clear.isLoading}>
             {t("nodes.egress.save")}
           </Button>
         </ModalFooter>
