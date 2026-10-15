@@ -123,8 +123,8 @@ Once the installation is complete:
 
 - You will see the logs that you can stop watching them by closing the terminal or pressing `Ctrl+C`
 - The Marzban files will be located at `/opt/marzban`
-- The configuration file can be found at `/opt/marzban/.env` (refer to [configurations](#configuration) section to see variables)
-- The data files will be placed at `/usr/lib/marzban`
+- The configuration file can be found at `/opt/marzban/.env` (refer to [configurations](#配置) section to see variables)
+- The data files will be placed at `/var/lib/marzban`
 - For security reasons, the Marzban dashboard is not accessible via IP address. Therefore, you must [obtain SSL certificate](https://gozargah.github.io/marzban/en/examples/issue-ssl-certificate) and access your Marzban dashboard by opening a web browser and navigating to `https://YOUR_DOMAIN:8000/dashboard/` (replace YOUR_DOMAIN with your actual domain)
 - You can also use SSH port forwarding to access the Marzban dashboard locally without a domain. Replace `user@serverip` with your actual SSH username and server IP and Run the command below:
 

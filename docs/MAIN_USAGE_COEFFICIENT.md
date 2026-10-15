@@ -1,7 +1,6 @@
 # 主面板本机使用系数
 
-变更编号：`MR-20261008-MAIN-USAGE-COEFFICIENT`。维护者：Mr.shaw。
-状态：本轮镜像已发布并核对双架构；服务器验收未执行。仅文档回写不重建运行时镜像。
+在节点设置顶部的「主面板（本机）」卡片设置流量扣除倍率。只影响后续本机业务用量，不是网速倍率，不改变远程 Node 系数或历史账单。
 
 ## 设置入口与范围
 
@@ -38,50 +37,10 @@
 
 只构建/更新 `kissow/Marzban` 主镜像。`kissow/Marzban-node` 和 `kissow/Marzban-scripts` 无运行时/接口/命令变更，本轮不需要配对更新。Xray 固定 `v26.3.27`。既有安装不要重新 install、重复 adopt、删除卷或覆盖 .env。
 
-本轮镜像发布并核对 revision 后，已切换 Fork 的主控用 `marzban update`；备份 `.env`、数据库、证书和配置，维护窗口操作，更新短暂重启主控。脚本已有自动备份不是恢复演练。回滚前备份；额外字段可以被旧 ORM 忽略，但不自动降级数据库或删除用量记录。
+已切换 Fork 的主控用 `marzban update`；备份 `.env`、数据库、证书和配置，维护窗口操作，更新短暂重启主控。脚本已有自动备份不是恢复演练。回滚前备份；额外字段可以被旧 ORM 忽略，但不自动降级数据库或删除用量记录。
 
-## 验收流程与证据
+## 更新后验证
 
-1. 本地 SQLite API/计费/迁移测试，四语言/表单校验/草稿与错误保护，类型/生产构建和 diff/依赖检查。
-2. 功能分支 PR；干净 Linux 同一测试命令成功后合并。
-3. master 正式 Actions 成功，核对 GHCR latest index、amd64/arm64 manifest/config digest 与运行时 revision，不能引用旧镜像作为本次发布。
-4. 主控更新后 GET 默认 1，设置 2/0.5、刷新/重启确认持久化，已落库用量不重算。采集两批次比较本机用户/管理员/小时账本和原 Node 系数；网络统计保持实际字节。恢复到希望的系数。
-5. 验收证书/订阅/手机/桌面/直连/主控中转/Node 中转、错误提示与权限。测试用独立账号，不能改变真实用户额度或中断正在使用的节点进行测试。
+使用独立测试账号设置 2 或 0.5，刷新及重启确认持久化；在后续采集批次检查用户、管理员和小时账本扣量，历史账单及实际网络计数应保持原值。原 Node 系数、订阅与中转仍需分别核对，测试后恢复所需系数，不改真实用户额度。
 
-HTML 提案用原组件和主题，已获用户认可。浏览器自动视觉验证受策略限制未执行，不能用 TS/静态源码检查代替。运行时源码是现有开源 Marzban 结构上的局部修改；本轮未复制第三方新增算法，保留原许可证和上游署名。
-
-本地证据：最终代码全量后端两轮 182/182（固定 Xray 实际进程测试无跳过），本机系数专项 18/18 再连续三轮，前端 54/54（含实际 React/Chakra 四语言 SSR；不等同浏览器视觉验收）、TypeScript/Vite、固定入口 Check、pip check/diff 通过。现有 utcnow/Pydantic 弃用与大 bundle 警告保留，非本轮新增故障。
-
-开发失败复盘：新测试 Node fixture 最初漏填必填端口，补齐 fixture；网络探测 mock 最初误用用户统计结构，改成既有 up/down 合同；原 migration-head 断言需接新 additive head，保留全部旧迁移链断言；Toast onError 不能返回 ToastId，使用 void 回调；增加实际 SSR 后发现缓存初始数值仍为空，改为从已加载 query 初始化草稿并保留后续 dirty 保护。对应 API、原网络统计、迁移链、类型与 SSR 回归已通过。没有隐藏/跳过失败测试。
-
-## 本轮发布证据（2026-10-08）
-
-源提交 `6f65298e1972a5a55df44b2267cc6e8a57807022`；[PR #19](https://github.com/kissow/Marzban/pull/19) 已合入 master。运行时/镜像 revision：`15a11e9d5bdf884fa860456e3a4ae0602d6783b1`。
-[PR CI 37777207870](https://github.com/kissow/Marzban/actions/runs/37777207870) 和 [正式构建 37777455474](https://github.com/kissow/Marzban/actions/runs/37777455474) 首次成功。两轮 Linux 普通后端182项中的两项真实 Xray 在普通阶段跳过，然后显式安装固定核心，两项实际进程测试均通过；前端54/54、类型/生产构建通过。未把跳过记录作为真实测试通过。
-
-镜像：`ghcr.io/kissow/marzban:latest`；index：`sha256:ed5d2641733126431104155f62a447390767f524525e7303f5bfc46741cb5f35`。
-核对时间：2026-10-08T20:39:05.7344197+08:00；index/manifest/config均按原始字节SHA256核对，核对前后latest未改变；两架构OCI revision均为上面的运行时提交。
-
-| 平台 | manifest digest | config digest |
-| --- | --- | --- |
-| linux/amd64 | `sha256:48b1bd5652a18cfd7746f526bddc0c7f7ba0ee6e4c292ba56aed4131730bcc48` | `sha256:ebbabd599990ae21df4c3595618f8c17e2267dbd4683b49f2df215e2b90170ea` |
-| linux/arm64 | `sha256:25d7dea861a8036e2604f2943daf6df1fa4c46e8b9373227c485efda58097c91` | `sha256:9e21f75c637f1d6a60e2c6cfffec92cbe78e9fa931fcd3391bd3c5f9588de26d` |
-
-GitHub runner 提示 Action Node20切换到Node24及ubuntu-latest后续迁移；本轮均成功，不是构建错误。本轮未升级Action版本或扩大运行时变更。
-
-实际实现组件离线HTML已从同一运行时NodesDialog/MainUsageCard/原主题编译，完整四语言，1153294字节，SHA256 `7f3d90c62e116af42cd6e0633d13d9b0dd210d6f18fb7851b19815f30f3ec5fd`。它使用离线fixture，不更改服务器。实际浏览器截图、手机操作、服务器迁移/容器启动与计费仍待用户验收，不能标为稳定版。
-
-## 服务器 SSH 更新（已切换 Fork）
-
-```sh
-marzban update
-marzban status
-marzban logs --no-follow 2>&1 | tail -n 100
-docker ps --filter label=com.docker.compose.service=marzban --format '{{.ID}}' | xargs -r docker inspect --format '{{.Name}} | {{.Config.Image}} | {{index .Config.Labels "org.opencontainers.image.revision"}}'
-```
-
-预期镜像 `ghcr.io/kissow/marzban:latest`，revision `15a11e9d5bdf884fa860456e3a4ae0602d6783b1`（不要求与后续仅文档提交相同）。更新前备份，下载可能数分钟，短暂重启；不要重装或删卷。Node/scripts本轮不用更新。浏览器刷新后，在节点设置顶部保存本机系数并按前述验收流程确认；本轮没有远程操作用户服务器。
-
-## English summary
-
-The existing Node dialog now includes a separate local main-server billing setting, default 1. Only subsequent collection batches from the local business Xray API are scaled; persisted historical usage, raw network statistics, remote Node multipliers and transparent relay behavior are unchanged. Sudo-only GET/PUT `/api/node/main/usage`; additive migration `a123bc45de67`; range greater than zero through 1000 with up to five decimal places. No Node or deployment-script update is required for this feature. The image above is published and verified, but production server and browser visual acceptance remain pending. Preserve upstream licensing and existing deployment data.
+[历史测试、镜像与验收记录](releases/main-usage-coefficient-guide-20261015.md) · [更新流程](REPOSITORY_UPDATE_FLOW.md)

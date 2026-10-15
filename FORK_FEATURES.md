@@ -7,7 +7,7 @@
 | 节点状态 | 分别显示控制连接、资源和活动采样；在线用户不等于设备或连接数 | [活动统计](docs/NODE_ACTIVITY_AND_POLICY.md)、[连接恢复](docs/NODE_CONTROL_RESILIENCE.md) |
 | 节点出口代理 | 每个 Node 独立配置 HTTP/SOCKS5；DNS/UDP 按模式处理 | [出口与 UDP](docs/NODE_EGRESS_UDP.md) |
 | 出口连接检测 | 从目标 Node 检测代理握手、HTTPS 出口和所选 DNS/UDP；不是客户端整链测速 | [检测与安全应用](docs/EGRESS_PROBE.md) |
-| 透明中转 | 选择 Marzban 或源 Node 转发到目标 Node；原订阅名称、数量和目标出口保留 | [中转设置](docs/NODE_RELAY_SOURCES.md) |
+| 透明中转 | 选择 Marzban 或源 Node 转发到目标 Node；原订阅名称、数量和目标出口保留 | [中转设置](docs/NODE_RELAY_SOURCES.md)、[分段测速](docs/NODE_RELAY_TESTING.md) |
 | 本机使用系数 | 只影响主面板业务用户后续流量计费，不是网速倍率，不重算历史 | [使用系数](docs/MAIN_USAGE_COEFFICIENT.md) |
 | 本机独立出口 | 只为本机业务核心叠加 HTTP/SOCKS5 出口，提供本机检测；不下发给其他 Node | [设置与隔离](docs/MAIN_EGRESS.md) |
 | 设备登记 | HWID 登记及独立凭据；无 HWID 共享兼容路径可绕过限额，不是物理设备硬限制 | [登记与策略](docs/NODE_ACTIVITY_AND_POLICY.md) |

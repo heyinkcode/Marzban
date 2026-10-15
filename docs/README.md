@@ -8,6 +8,7 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 - [节点 HTTP/SOCKS5 出口、DNS 和 UDP 模式](NODE_EGRESS_UDP.md)
 - [出口连接检测、失败原因与安全应用](EGRESS_PROBE.md)
 - [Marzban 或 Node 中转到目标 Node](NODE_RELAY_SOURCES.md)
+- [中转设置步骤](NODE_RELAY.md)、[订阅显示规则](NODE_RELAY_SUBSCRIPTION.md)、[链路检测与测速](NODE_RELAY_TESTING.md)
 - [主面板本机使用系数](MAIN_USAGE_COEFFICIENT.md)
 - [主面板本机独立出口与连接检测](MAIN_EGRESS.md)
 - [设备登记、在线用户与策略边界](NODE_ACTIVITY_AND_POLICY.md)
@@ -26,6 +27,10 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 - [按功能查阅历史发布证据](releases/README.md)
 
 SHA、Actions、镜像摘要、测试和服务器验收状态写入对应功能/发布文档，不再插入产品首页。服务器验收与镜像发布分别记录。
+
+## 功能发布与历史记录
+
+各功能说明底部链接对应测试、镜像和验收记录；[历史索引](releases/README.md)保留旧阶段原文。日常设置以现行说明为准，不使用旧镜像 SHA 或已失效的开发阶段提示代替当前要求。主面板本机出口的发布记录见[专页](MAIN_EGRESS_RELEASE.md)。
 
 ## 原项目资料
 

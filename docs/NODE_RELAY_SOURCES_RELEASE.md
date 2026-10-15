@@ -1,5 +1,7 @@
 # MR-20261008-NODE-RELAY-SOURCES 配对发布证据
 
+> 发布快照：以下提交、镜像摘要、验收状态及预期 revision 对应文中的发布日期，不代表之后的 latest。实际设置与更新范围见[现行说明](NODE_RELAY_SOURCES.md)；不要按历史 SHA 判定新版本更新失败。
+
 状态：主控与Node代码已合并、干净Linux CI和两套latest镜像发布完成；manifest/config字节SHA256和OCI revision已核对，校验前后latest一致。真实服务器/原组件UI/多引擎数据库验收待完成，不标稳定版。文档回写[skip ci]不重新构建，不能用文档提交替代以下运行时revision。
 
 | 仓库 | 源提交 | PR | 合并/镜像revision | 正式Actions |
