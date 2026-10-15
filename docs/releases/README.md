@@ -25,3 +25,18 @@
 | 普通订阅与 HWID 兼容 | [说明](../NODE_ACTIVITY_AND_POLICY.md) | [发布历史](subscription-compatibility.md) |
 
 历史首页快照单独保留在[旧首页归档](../README_RELEASE_HISTORY.md)，不再追加新记录。新更新在对应功能专页维护，CHANGELOG只保留一句摘要和链接。
+
+## 旧功能说明快照
+
+以下原文完整保留拆分前的使用、测试和发布内容；当前行为以每份快照顶部的当前说明为准。
+
+- [MR-20261007-BROWSER-TRANSLATION：浏览器翻译 DOM 兼容](browser-translation-guide-20261015.md)
+- [MR-DASHBOARD-I18N-MOBILE：多语言与手机设置入站修复](dashboard-i18n-mobile-guide-20261015.md)
+- [Node 出口连接检测与安全应用](egress-probe-guide-20261015.md)
+- [主面板本机使用系数](main-usage-coefficient-guide-20261015.md)
+- [Node 活动统计与设备策略合同](node-activity-and-policy-guide-20261015.md)
+- [MR-20261006-CONTROL-RESILIENCE：慢链路与会话恢复](node-control-resilience-guide-20261015.md)
+- [每个 Node 的住宅出口 UDP 策略](node-egress-udp-guide-20261015.md)
+- [MR-20261007-NODE-RELAY：Marzban 主服务器中转到 Node 节点](node-relay-guide-20261015.md)
+- [MR-20261008-NODE-RELAY-SOURCES](node-relay-sources-guide-20261015.md)
+- [MR-20261007-RELAY-INTERNAL-SUBSCRIPTION](node-relay-subscription-guide-20261015.md)

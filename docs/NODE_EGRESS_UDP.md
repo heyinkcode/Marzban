@@ -1,14 +1,10 @@
-# 每个 Node 的住宅出口 UDP 策略
+# Node 出口代理的 DNS 与 UDP 模式
 
-初连执行顺序修复（2026-10-03）：非 legacy 出口的健康/能力检查前必须先建立
-现有认证会话，然后启动 Node。UDP 模式/能力标识和线协议不变，已配对 Node 本轮不需更新。
-修复与依赖维护的发布状态见 [NODE_CONNECTION_RELEASE.md](NODE_CONNECTION_RELEASE.md)。
-
-变更编号：`MR-20261003-EGRESS-UDP`。日期：2026-10-03。状态：代码和配对镜像已发布，实际服务器/手机/供应商/UI 截图验收待完成，未标记稳定版。作者：Mr.shaw。源 SHA、Actions 与 GHCR/OCI 证据见 [发布记录](EGRESS_UDP_RELEASE.md)。
+在每个目标 Node 的「住宅 IP／出口代理」中选择 HTTP/SOCKS5 和 UDP 处理模式。模式仅作用于该 Node 的配置副本，主面板本机和其他 Node 各自独立。
 
 ## 为什么按 Node 设置
 
-客户端支持 UDP 不代表每个请求都使用 UDP。不同客户端的 DNS、分流和应用回退方式可能不同；不能只凭一个客户端可用就认定供应商支持 UDP。此次问题日志显示 UDP DNS 请求经住宅 SOCKS5 代理被拒绝，但共享 Node 日志不能把所有失败归因于同一客户端。此次修改不改变 HWID/设备登记策略，也不假定手机或 TUN 不兼容。
+客户端支持 UDP 不代表每个请求都使用 UDP。不同客户端的 DNS、分流和应用回退方式可能不同；不能只凭一个客户端可用就认定供应商支持 UDP。应分别验证供应商 DNS、UDP 和具体应用；共享 Node 日志不能把所有失败归因于同一客户端。UDP 选项不改变 HWID/设备登记策略。
 
 沿用原 Chakra 的住宅出口表单，仅增加“UDP 处理”：桌面为“协议/UDP 处理、服务器/端口、用户名/密码”三排；手机单列。保留证书、节点端口、启用开关、其他原控件及原弹窗宽度。使用真实组件预览，不另做设计稿。
 
@@ -31,25 +27,20 @@
 - 路径不变：`GET/PUT/DELETE /api/node/{node_id}/egress`，仍需要 sudo 管理员认证。
 - PUT 新增 `udp_mode`，省略为 `legacy`；GET 配置存在时返回保存的模式。协议/服务器/端口/用户名及原密码留空保留规则不变；API 不返回密码。
 - 能力：`legacy` 需要 `managed-outbounds-v1`；非 legacy 还需要 `managed-outbounds-udp-v1`。旧/离线/能力不足的 Node 在保存前返回 409；非法模式或 HTTP+proxy 返回 422；认证失败仍 401/403，未知 Node 404。
-- 成功保存只表示数据库写入并排队异步重启，不代表供应商连通性验收成功。重连/重启时再次检查非 legacy 能力，防止降级 Node 静默忽略策略。
+- 当前保存/移除还要求 `managed-egress-probe-v1`，经核心预检、启动和 API 就绪确认后才提交；不是旧的仅排队异步重启。传输/ACK 丢失时结果未确认，不盲目重发。成功应用仍不代表供应商连通，详见[检测与安全应用](EGRESS_PROBE.md)。重连/重启继续检查非 legacy 能力。
 - 原有认证 REST/RPyC Xray 控制通道传输 `marzban_node_extensions.outbounds[0].udp_mode`，不增加接口、证书或公网端口。只改对应 Node 的配置副本，不改主核心出口。
 
 ## 数据、升级和回退
 
 主面板新增 Alembic `7e8f9012ab34`，父版本 `6d7e8f9012ab`，只给 `node_egress` 添加非空 `udp_mode` 字段，旧记录默认 `legacy`。不删除用户、节点、代理凭据、证书、环境文件或数据卷。固定核心仍为 `v26.3.27`，scripts 无变化。
 
-**此功能已发布配对 latest，镜像源 SHA 和摘要已核对；服务器仍待验收。** 先更新配对 Node、验证主面板连接，再更新主面板并为测试 Node 选择模式。已切 Fork 的原部署只 update，不重复 adopt、不重装、不删除卷。升级前备份数据库和部署配置。
+先更新具备出口模式及当前安全应用能力的目标 Node、验证主面板连接，再更新主面板并为测试 Node 选择模式。已切 Fork 的原部署只 update，不重复 adopt、不重装、不删除卷。升级前备份数据库和部署配置。
 
 回退：先恢复目标 Node 为 legacy 并确认生效，再回退配对镜像。旧主面板不能理解新增字段；数据库降级仅移除新字段，需停服务并先备份，不能删除整个表或替换用户库。若 Node 降级但仍保存非 legacy 模式，主面板会报能力不兼容而不是静默放行。
 
-## 本地验证与待验收
+## 使用检查
 
-- 主面板完整 unittest 54 项、Node 完整 unittest 48 项通过；核心测试设置 `XRAY_TEST_BINARY`，无跳过。
-- 真实固定 Xray：HTTP/SOCKS × legacy/tcp_only × 有/无认证，8 组配置解析；4 个 A/TXT DNS 运行测试使用本地 TCP-only 模拟供应商，验证收到 DNS 回复且发送 CONNECT/TCP53，不使用 UDP ASSOCIATE。
-- 迁移升级/回退、单 Node 隔离、密码加密/保留、模式校验、标签碰撞、原子失败、显式路由优先级均有测试。其他 UDP 的阻断目前是路由单元测试，不等于所有实际应用验收。
-- TypeScript、生产 Vite 和原组件预览构建通过。浏览器本地安全策略校验失败，未完成真实桌面/手机截图，不宣称 UI 已验收。
-- 待完成：原组件桌面/手机 UI 审核、隔离 Linux 主面板/Node 联调、实际供应商 TCP53、v2rayNG/Clash Meta 同账号同节点对照、应用 TCP/UDP/出口 IP、切回 legacy 和另一支持 UDP 的供应商回归。
-- 有真实用户连接的节点不得为了排查全量关闭住宅出口或改设备策略；先用测试用户/隔离 Node，日志隐藏凭据。
+先在测试账号/隔离 Node 核对 HTTPS 出口 IP，再分别验证 DNS、应用 TCP/UDP、切回 legacy 和原中转路径。供应商支持 TCP 不等于支持 UDP；不要为排查一个客户端而关闭忙碌节点的全部出口或改设备策略。
 
 ## 上游和参考
 
@@ -57,3 +48,5 @@
 
 - Xray DNS 出站：[dns.go（固定 v26.3.27）](https://github.com/XTLS/Xray-core/blob/v26.3.27/proxy/dns/dns.go)、[dns_proxy.go](https://github.com/XTLS/Xray-core/blob/v26.3.27/infra/conf/dns_proxy.go)。
 - 客户端 DNS 对照：[Mihomo DNS 配置](https://wiki.metacubex.one/config/dns/)。它用于解释不同解析传输，不是实际手机配置的证据。
+
+[连接检测与保存结果](EGRESS_PROBE.md) · [历史测试和发布记录](releases/node-egress-udp-guide-20261015.md)

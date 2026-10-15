@@ -1,5 +1,7 @@
 # Node 初连与 APScheduler 依赖维护
 
+> 发布快照：以下提交、镜像摘要、验收状态及预期 revision 对应文中的发布日期，不代表之后的 latest。实际设置与更新范围见[现行说明](NODE_CONTROL_RESILIENCE.md)；不要按历史 SHA 判定新版本更新失败。
+
 编号：MR-20261003-NODE-CONNECT / MR-20261003-SCHEDULER-DEPENDENCY。
 日期：2026-10-03。维护者：Mr.shaw。状态：本地与 Linux CI 通过，本轮主控镜像已发布并核对；服务器验收待完成。
 
