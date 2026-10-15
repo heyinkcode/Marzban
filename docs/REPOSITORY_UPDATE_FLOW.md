@@ -1,6 +1,6 @@
 # Mr.shaw Fork 更新、接口与验收登记
 
-## MR-20261015-EGRESS-PROBE（本地多轮通过，待发布）
+## MR-20261015-EGRESS-PROBE（配对镜像已发布，服务器验收待完成）
 
 发布前验证：主控完整190/190两轮，应用专项8/8再三轮；Node完整80/80两轮，出口/真实核心恢复专项21/21再三轮（含真实子进程、TCP/UDP报文及固定Xray进程，无跳过）；前端60/60、TypeScript/Vite生产构建、pip check和固定入口diff检查通过。原组件HTML已展示，浏览器截图与两台生产服务器验收未执行。真实恢复测试额外发现旧核心进程/日志管道未回收，已修复并复跑；Windows夹具单独补SystemRoot，不修改Linux生产环境。
 
@@ -8,7 +8,9 @@
 
 主控新增sudo POST /api/node/{node_id}/egress/test；既有PUT/DELETE出口接口改为Node重启/API确认后才提交，失败保留保存值，Node启动失败尝试恢复旧配置，ACK丢失明确未确认且不盲目重发。Node新增认证REST /egress/probe、RPyC probe_egress与managed-egress-probe-v1能力。修复密码首尾空格被Node裁剪的问题。两仓库需配对更新；scripts无运行时变化，Xray v26.3.27、数据库迁移/证书/端口/用户/.env/数据卷无变化。
 
-[合同、错误码、测试与升级验收](EGRESS_PROBE.md)。目前尚未推送/运行本轮Actions/发布镜像/验收服务器；不得用旧latest作为本轮证据。
+[合同、错误码、摘要证据与升级验收](EGRESS_PROBE.md)。先更新使用出口检测的目标Node，再更新主控；scripts无运行时变化。
+
+2026-10-15 发布证据：主控源789130c30a69a85708255154d0d4f6a24c573495，经PR #21合入258218c07c9f2e265e790764bd727e528dcb761d；Node源ce3bed0decccef70c70765f9f59936a8b6a78dc6，经PR #5合入168a9e63d7c5219dffafd5839876db30b57e3cd5。主控分支Actions38670782109、正式38671882097，Node PR38660291647/分支38660285441、正式38671875814均成功；两latest的index/双架构manifest/config摘要与OCI revision已核对。用户要求的额外一轮主控190/190、Node80/80、前端60/60、类型/生产构建/pip check也通过。仅文档[skip ci]回写不改变镜像运行时revision；服务器未更新/验收，不能据此宣称实际供应商或客户端已恢复。
 
 
 ## MR-20261008-MAIN-USAGE-COEFFICIENT（镜像已发布，服务器验收待完成）

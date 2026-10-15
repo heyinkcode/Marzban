@@ -1,6 +1,6 @@
 # Node 出口连接检测与安全应用
 
-变更 MR-20261015-EGRESS-PROBE，2026-10-15。状态：本地复核中，未发布。配对仓库 kissow/Marzban 与 kissow/Marzban-node；scripts无本轮运行时变化。原作者版权/许可证保留；参考对话仅借鉴诊断与失败恢复思路，没有复用其他项目代码或品牌。
+变更 MR-20261015-EGRESS-PROBE，2026-10-15。状态：配对代码已合并、正式镜像已发布并核对摘要，服务器/自动浏览器视觉验收待完成。配对仓库 kissow/Marzban 与 kissow/Marzban-node；scripts无本轮运行时变化。原作者版权/许可证保留；参考对话仅借鉴诊断与失败恢复思路，没有复用其他项目代码或品牌。
 
 ## 范围与拓扑
 
@@ -62,7 +62,7 @@ proxy（仅SOCKS5）：UDP ASSOCIATE后实际发送封装DNS UDP请求，校验�
 
 ## 发布与服务器验收
 
-本地状态、push、Actions、镜像摘要、服务器验收分别登记；当前未发布。完成两仓库构建并核对双架构镜像revision后，先更新使用出口检测的目标Node，再更新主控。纯中转Node如不承担出口检测不强制本轮更新。原已切Fork安装使用update，新机器才install；不重装、不删卷、不重建证书。更新会短暂重启对应服务。
+本地状态、push、Actions、镜像摘要、服务器验收分别登记；本轮两仓库正式构建与双架构摘要/revision核对已完成（证据见后节），服务器未更新/验收。先更新使用出口检测的目标Node，再更新主控。纯中转Node如不承担出口检测不强制本轮更新。原已切Fork安装使用update，新机器才install；不重装、不删卷、不重建证书。更新会短暂重启对应服务。
 
 若部署脚本误报“仍使用官方镜像”，先核对docker inspect和Compose config --images，不能对已经是ghcr.io/kissow/marzban-node的安装重复adopt。可在确认默认Compose路径和服务名后使用Docker Compose的pull与up -d更新，不更改镜像源/卷/环境。
 
@@ -71,6 +71,52 @@ proxy（仅SOCKS5）：UDP ASSOCIATE后实际发送封装DNS UDP请求，校验�
 ## 本地发布前证据
 
 主控完整190/190两轮、应用专项8/8再三轮；Node完整80/80两轮、出口/固定核心恢复专项21/21再三轮且无跳过；前端60/60、类型、Vite生产构建、依赖/diff通过。记录真实失败后修复并复跑，不删除旧失败日志。真实核心测试使用固定26.3.27，预检失败保留PID、端口冲突恢复旧监听；同时修复日志线程跨进程代际和子进程/管道回收问题。Windows夹具需要SystemRoot，Linux生产环境未改。本地日志在项目.cache/egress-*-final*/release*，不提交含运行输出的日志。
+
+## 2026-10-15 配对发布证据
+
+| 项目 | Marzban主控 | Marzban-Node |
+| --- | --- | --- |
+| 源提交 | 789130c30a69a85708255154d0d4f6a24c573495 | ce3bed0decccef70c70765f9f59936a8b6a78dc6 |
+| 合并PR | [#21](https://github.com/kissow/Marzban/pull/21) | [#5](https://github.com/kissow/Marzban-node/pull/5) |
+| 运行时/镜像revision | 258218c07c9f2e265e790764bd727e528dcb761d | 168a9e63d7c5219dffafd5839876db30b57e3cd5 |
+| 分支检查 | [38670782109](https://github.com/kissow/Marzban/actions/runs/38670782109) | [PR38660291647](https://github.com/kissow/Marzban-node/actions/runs/38660291647)、[分支38660285441](https://github.com/kissow/Marzban-node/actions/runs/38660285441) |
+| 正式构建 | [38671882097](https://github.com/kissow/Marzban/actions/runs/38671882097) | [38671875814](https://github.com/kissow/Marzban-node/actions/runs/38671875814) |
+| latest index | sha256:160cdfdd1e2e0fd32681a4ecf22d99154782a8684c670e2697b6005b406b19f9 | sha256:77edfcc4a296b061e5589e0ceb7319609e71f1eef8f0685777afccd244633738 |
+
+两次正式构建均成功。Linux主控普通套件190项（其中2项依赖二进制先跳过，随后的固定Xray步骤2/2通过）、前端60/60、类型/生产构建通过；Node普通套件80项（先跳过10项二进制相关用例），随后固定Xray完整80/80通过。不得只摘录首轮的跳过数或将其当作真实核心验收。用户追加复核后，本地完整主控190/190、Node80/80（均无跳过）、前端60/60、类型/生产构建/pip check再通过一轮；因此完整后端本地累计各三轮，关键专项各另三轮。
+
+2026-10-15T10:46:13+08:00至10:46:15+08:00，使用registry原始字节SHA256校验index、manifest、config；核对Docker-Content-Digest、linux/amd64和linux/arm64的revision，且验证前后latest未变：
+
+| 镜像/架构 | manifest digest | config digest |
+| --- | --- | --- |
+| 主控 amd64 | sha256:a40ebf0f7a4db69ff0d8b75dbbc905dd95a8a8c05fb3f7293551340dfc7fda7f | sha256:0cc18e2f736161033aac3651e9940a1d5fd961035ab55e49691d855d5493aab8 |
+| 主控 arm64 | sha256:a42b4851ce9e2e7bd31b8bfb05e74eee88088e2588b89cac794469b537465759 | sha256:e80ff1d4b68644132592314ada4345f078e1e00e6fdc1d05da57e11513ce807f |
+| Node amd64 | sha256:fb8e5f2a009bf16cf7014ef788ae9d0bced9b3eaeac8f25f5cd2f880905800d3 | sha256:8be08c2325e3a233dbac0c0c6ba7d196c2cf760d0ba94e680f76b71c1aec6613 |
+| Node arm64 | sha256:15255c2bf7078dcaf2caed5b161912296f8357508bb5eb242a3f5f8d0cb151dd | sha256:f5c418688f375d7ab337c093b207562f9cbff415efdf8ccc6513dbcb0adebc98 |
+
+发布阻塞已记录：主控GitHub此前dispatch返回HTTP422 disabled，但只读仓库开关显示enabled/active；维护者Actions页面确认Fork工作流暂停后手动重新启用，随后本轮分支及正式构建成功。未修改Actions安全权限。Git fetch连续连接重置，保留证据，文档使用树内容与正式合并提交完全相同的本地源基线提交，不覆盖原工作区。
+
+现有非失败警告：Pydantic旧json方法弃用、Vite vendor大包、GitHub Actions运行器Node版本/ubuntu-latest迁移提示；本轮未顺带升级依赖或改变固定业务核心。此处记录不等于这些维护事项已修复。原组件HTML已提供；自动浏览器截图和两台生产服务器实际供应商/手机/桌面/中转链路尚未验收，不标稳定版。
+
+已切换Fork的服务器先在目标Node运行：
+
+```sh
+marzban-node update
+marzban-node status
+docker inspect marzban-node --format '{{.Config.Image}} | {{index .Config.Labels "org.opencontainers.image.revision"}}'
+```
+
+Node预期镜像ghcr.io/kissow/marzban-node:latest，revision为上表168a9e63完整SHA。如脚本误报official而inspect/Compose确认已是Fork，按前节核对默认路径后用Compose pull/up -d，不重复adopt。
+
+然后主控运行：
+
+```sh
+marzban update
+marzban status
+docker ps --filter label=com.docker.compose.service=marzban --format '{{.ID}}' | xargs -r docker inspect --format '{{.Config.Image}} | {{index .Config.Labels "org.opencontainers.image.revision"}}'
+```
+
+主控预期ghcr.io/kissow/marzban:latest，revision为上表258218c0完整SHA。更新可能短暂重启；保留.env、证书、数据库和卷，不安装/重装。检测单次及三轮、核对出口IP、实际客户端访问并持续观察至少30分钟后，由维护者登记服务器验收。后续仅文档[skip ci]回写不重建上述镜像。
 
 ## English summary
 
