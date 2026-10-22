@@ -11,7 +11,7 @@ WORKDIR /code
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential curl unzip gcc python3-dev libpq-dev \
-    && curl -fsSL https://raw.githubusercontent.com/kissow/Marzban-scripts/master/install_latest_xray.sh | bash -s -- "$XRAY_CORE_VERSION" \
+    && curl -fsSL https://raw.githubusercontent.com/heyinkcode/Marzban-scripts/master/install_latest_xray.sh | bash -s -- "$XRAY_CORE_VERSION" \
     && installed_xray_version="$(xray -version 2>/dev/null | awk 'NR == 1 { print $2 }')" \
     && expected_xray_version="$(printf '%s' "$XRAY_CORE_VERSION" | sed 's/^v//')" \
     && test "$installed_xray_version" = "$expected_xray_version" \

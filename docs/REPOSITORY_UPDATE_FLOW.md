@@ -27,7 +27,7 @@
 
 ## 升级与回滚
 
-新服务器才 install；首次从官方切换 Fork 才 adopt；已有 Fork 使用 update。保留原部署目录与命令名，不用重装、删卷、覆盖 .env 或重建证书升级。脚本命令和备份要求见[部署仓库](https://github.com/kissow/Marzban-scripts/blob/master/README.md)；误报官方镜像见[识别修复](https://github.com/kissow/Marzban-scripts/blob/master/docs/UPDATE_IMAGE_RECOGNITION.md)。
+新服务器才 install；首次从官方切换 Fork 才 adopt；已有 Fork 使用 update。保留原部署目录与命令名，不用重装、删卷、覆盖 .env 或重建证书升级。脚本命令和备份要求见[部署仓库](https://github.com/heyinkcode/Marzban-scripts/blob/master/README.md)；误报官方镜像见[识别修复](https://github.com/heyinkcode/Marzban-scripts/blob/master/docs/UPDATE_IMAGE_RECOGNITION.md)。
 
 升级前保存实际镜像摘要、配置及数据备份。失败按对应版本恢复配对镜像和备份；数据库迁移必须单独核对回滚风险。不能把容器 Up 当作用户业务、订阅、出口或中转均已验收。
 

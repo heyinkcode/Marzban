@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../DASHBOARD_I18N_MOBILE.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/DASHBOARD_I18N_MOBILE.md)
+[当前说明](../DASHBOARD_I18N_MOBILE.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/DASHBOARD_I18N_MOBILE.md)
 
 ---
 
@@ -55,9 +55,9 @@
 
 ## 正式发布证据
 
-- 修复源提交：`33081ba100b7c21d652db91e78497c4de447a63d`；分支 Actions [37352009623](https://github.com/kissow/Marzban/actions/runs/37352009623) 成功。
-- [PR #11](https://github.com/kissow/Marzban/pull/11) 已合并；master/镜像源 revision：`5655213099c18532ff3daff5cead010c181a19e9`。
-- 正式 Actions [37353281396](https://github.com/kissow/Marzban/actions/runs/37353281396) 成功：Linux 后端 95/95、语言 34/34、TypeScript/生产构建、正式核心版本闸门通过。
+- 修复源提交：`33081ba100b7c21d652db91e78497c4de447a63d`；分支 Actions [37352009623](https://github.com/heyinkcode/Marzban/actions/runs/37352009623) 成功。
+- [PR #11](https://github.com/heyinkcode/Marzban/pull/11) 已合并；master/镜像源 revision：`5655213099c18532ff3daff5cead010c181a19e9`。
+- 正式 Actions [37353281396](https://github.com/heyinkcode/Marzban/actions/runs/37353281396) 成功：Linux 后端 95/95、语言 34/34、TypeScript/生产构建、正式核心版本闸门通过。
 - 正式镜像：`ghcr.io/kissow/marzban:latest`；index `sha256:793c61738cf18f8641c2ce4b86037a41064903b7e59e4c49a296f8121c2947ce`。
 - latest 推送完成日志：`2026-10-05T18:16:26Z`（UTC；香港 2026-10-06）。登记时间采用本地日期，未把 UTC 的 10 月 5 日写成另一次发布。
 

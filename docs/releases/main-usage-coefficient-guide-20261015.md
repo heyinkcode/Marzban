@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../MAIN_USAGE_COEFFICIENT.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/MAIN_USAGE_COEFFICIENT.md)
+[当前说明](../MAIN_USAGE_COEFFICIENT.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/MAIN_USAGE_COEFFICIENT.md)
 
 ---
 
@@ -64,8 +64,8 @@ HTML 提案用原组件和主题，已获用户认可。浏览器自动视觉验
 
 ## 本轮发布证据（2026-10-08）
 
-源提交 `6f65298e1972a5a55df44b2267cc6e8a57807022`；[PR #19](https://github.com/kissow/Marzban/pull/19) 已合入 master。运行时/镜像 revision：`15a11e9d5bdf884fa860456e3a4ae0602d6783b1`。
-[PR CI 37777207870](https://github.com/kissow/Marzban/actions/runs/37777207870) 和 [正式构建 37777455474](https://github.com/kissow/Marzban/actions/runs/37777455474) 首次成功。两轮 Linux 普通后端182项中的两项真实 Xray 在普通阶段跳过，然后显式安装固定核心，两项实际进程测试均通过；前端54/54、类型/生产构建通过。未把跳过记录作为真实测试通过。
+源提交 `6f65298e1972a5a55df44b2267cc6e8a57807022`；[PR #19](https://github.com/heyinkcode/Marzban/pull/19) 已合入 master。运行时/镜像 revision：`15a11e9d5bdf884fa860456e3a4ae0602d6783b1`。
+[PR CI 37777207870](https://github.com/heyinkcode/Marzban/actions/runs/37777207870) 和 [正式构建 37777455474](https://github.com/heyinkcode/Marzban/actions/runs/37777455474) 首次成功。两轮 Linux 普通后端182项中的两项真实 Xray 在普通阶段跳过，然后显式安装固定核心，两项实际进程测试均通过；前端54/54、类型/生产构建通过。未把跳过记录作为真实测试通过。
 
 镜像：`ghcr.io/kissow/marzban:latest`；index：`sha256:ed5d2641733126431104155f62a447390767f524525e7303f5bfc46741cb5f35`。
 核对时间：2026-10-08T20:39:05.7344197+08:00；index/manifest/config均按原始字节SHA256核对，核对前后latest未改变；两架构OCI revision均为上面的运行时提交。

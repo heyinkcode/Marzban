@@ -1,4 +1,4 @@
-# Shared behavior ported from the paired kissow/Marzban-node Fork (AGPL-3.0).
+# Shared behavior ported from the paired heyinkcode/Marzban-node Fork (AGPL-3.0).
 """Validate and apply panel-managed proxy outbounds to an Xray config."""
 
 from copy import deepcopy

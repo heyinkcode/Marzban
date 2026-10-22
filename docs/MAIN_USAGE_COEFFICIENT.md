@@ -35,7 +35,7 @@
 
 新增 additive 迁移 `a123bc45de67`，接 `9012ab34cd56`，只给 `system` 增加非空 `usage_coefficient FLOAT DEFAULT 1.0`。旧记录和新记录默认 1；不删除用户、配置、证书或数据。SQLite 升级/降级保留已有记录有回归；MySQL/PostgreSQL 生产迁移仍需相应环境验收。
 
-只构建/更新 `kissow/Marzban` 主镜像。`kissow/Marzban-node` 和 `kissow/Marzban-scripts` 无运行时/接口/命令变更，本轮不需要配对更新。Xray 固定 `v26.3.27`。既有安装不要重新 install、重复 adopt、删除卷或覆盖 .env。
+只构建/更新 `kissow/Marzban` 主镜像。`kissow/Marzban-node` 和 `heyinkcode/Marzban-scripts` 无运行时/接口/命令变更，本轮不需要配对更新。Xray 固定 `v26.3.27`。既有安装不要重新 install、重复 adopt、删除卷或覆盖 .env。
 
 已切换 Fork 的主控用 `marzban update`；备份 `.env`、数据库、证书和配置，维护窗口操作，更新短暂重启主控。脚本已有自动备份不是恢复演练。回滚前备份；额外字段可以被旧 ORM 忽略，但不自动降级数据库或删除用量记录。
 

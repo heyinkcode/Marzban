@@ -56,8 +56,8 @@
 
 ### 本轮公开发布证据
 
-- PR：https://github.com/kissow/Marzban/pull/10 ，已合并。
-- master Actions：https://github.com/kissow/Marzban/actions/runs/37340574125 ，首次成功。Linux 后端 95/95、TypeScript/Vite、固定 Xray 闸门及 amd64/arm64 构建上传通过。
+- PR：https://github.com/heyinkcode/Marzban/pull/10 ，已合并。
+- master Actions：https://github.com/heyinkcode/Marzban/actions/runs/37340574125 ，首次成功。Linux 后端 95/95、TypeScript/Vite、固定 Xray 闸门及 amd64/arm64 构建上传通过。
 - 镜像：`ghcr.io/kissow/marzban:latest`；OCI revision 为 `122632c8df4b57c43706cb59fb183e7386004ce1`。
 - OCI index：`sha256:ecbe03895e28c1dd7d9441907f967b1806f105e00e01d4dc36232bf7f39bb42b`。
 - linux/amd64 manifest：`sha256:f72f6429f480d141b80f66d3a5e13e431f8b569fee5733650bbe4c5018b86786`；config：`sha256:d9a0b33a1ff5c177f4f4d719202e4d44ea8545c4683164acc84fd9d8aa5d1bde`。

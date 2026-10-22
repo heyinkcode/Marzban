@@ -66,4 +66,4 @@ Node 启动、重启及重新连接后同步；管理员创建、修改、删除
 
 确认主控与目标 Node 支持所需活动/策略合同，再按配对功能要求更新；不通过重装、删卷或重建证书升级。分别验证共享订阅与 HWID 独立凭据、重启后账号同步及活动来源，不用 socket 数量推算设备。历史设备迁移不代表当前应用最新迁移 head。
 
-[历史测试与发布证据](releases/node-activity-and-policy-guide-20261015.md) · [主控更新流程](https://github.com/kissow/Marzban/blob/master/docs/REPOSITORY_UPDATE_FLOW.md)
+[历史测试与发布证据](releases/node-activity-and-policy-guide-20261015.md) · [主控更新流程](https://github.com/heyinkcode/Marzban/blob/master/docs/REPOSITORY_UPDATE_FLOW.md)

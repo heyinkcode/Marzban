@@ -8,9 +8,9 @@
 
 | 仓库 | 镜像源提交 | 成功 Actions |
 | --- | --- | --- |
-| kissow/Marzban | `10f46df8e52ad24c79a1d4a1aafc020a7f7ad335` | [37119086192](https://github.com/kissow/Marzban/actions/runs/37119086192) |
-| kissow/Marzban-node | `ff3ed8affb43a7c0be84b7404b25ba149cd9c805` | [37119086117](https://github.com/kissow/Marzban-node/actions/runs/37119086117) |
-| kissow/Marzban-scripts（仅配对文档） | `23c6dffe006eea30e117ffc86972f5fc94eab33d` | [37119329541](https://github.com/kissow/Marzban-scripts/actions/runs/37119329541) |
+| kissow/Marzban | `10f46df8e52ad24c79a1d4a1aafc020a7f7ad335` | [37119086192](https://github.com/heyinkcode/Marzban/actions/runs/37119086192) |
+| kissow/Marzban-node | `ff3ed8affb43a7c0be84b7404b25ba149cd9c805` | [37119086117](https://github.com/heyinkcode/Marzban-node/actions/runs/37119086117) |
+| kissow/Marzban-scripts（仅配对文档） | `23c6dffe006eea30e117ffc86972f5fc94eab33d` | [37119329541](https://github.com/heyinkcode/Marzban-scripts/actions/runs/37119329541) |
 
 两边本地完整测试为主面板 54 项、Node 48 项；Linux Actions 后端/前端检查与固定核心实测成功，两个多架构镜像成功发布。本轮 Actions 无失败重跑。发布核验脚本初次将 PowerShell 的 HTTP Byte[] 当作 JSON 字符串，造成架构数量校验失败；改为 UTF-8 解码后重新直接查询 GHCR 成功，此问题只属于本地证据工具，不是产品或 Actions 失败。
 

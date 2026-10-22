@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../EGRESS_PROBE.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/EGRESS_PROBE.md)
+[当前说明](../EGRESS_PROBE.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/EGRESS_PROBE.md)
 
 ---
 
@@ -85,10 +85,10 @@ proxy（仅SOCKS5）：UDP ASSOCIATE后实际发送封装DNS UDP请求，校验�
 | 项目 | Marzban主控 | Marzban-Node |
 | --- | --- | --- |
 | 源提交 | 789130c30a69a85708255154d0d4f6a24c573495 | ce3bed0decccef70c70765f9f59936a8b6a78dc6 |
-| 合并PR | [#21](https://github.com/kissow/Marzban/pull/21) | [#5](https://github.com/kissow/Marzban-node/pull/5) |
+| 合并PR | [#21](https://github.com/heyinkcode/Marzban/pull/21) | [#5](https://github.com/heyinkcode/Marzban-node/pull/5) |
 | 运行时/镜像revision | 258218c07c9f2e265e790764bd727e528dcb761d | 168a9e63d7c5219dffafd5839876db30b57e3cd5 |
-| 分支检查 | [38670782109](https://github.com/kissow/Marzban/actions/runs/38670782109) | [PR38660291647](https://github.com/kissow/Marzban-node/actions/runs/38660291647)、[分支38660285441](https://github.com/kissow/Marzban-node/actions/runs/38660285441) |
-| 正式构建 | [38671882097](https://github.com/kissow/Marzban/actions/runs/38671882097) | [38671875814](https://github.com/kissow/Marzban-node/actions/runs/38671875814) |
+| 分支检查 | [38670782109](https://github.com/heyinkcode/Marzban/actions/runs/38670782109) | [PR38660291647](https://github.com/heyinkcode/Marzban-node/actions/runs/38660291647)、[分支38660285441](https://github.com/heyinkcode/Marzban-node/actions/runs/38660285441) |
+| 正式构建 | [38671882097](https://github.com/heyinkcode/Marzban/actions/runs/38671882097) | [38671875814](https://github.com/heyinkcode/Marzban-node/actions/runs/38671875814) |
 | latest index | sha256:160cdfdd1e2e0fd32681a4ecf22d99154782a8684c670e2697b6005b406b19f9 | sha256:77edfcc4a296b061e5589e0ceb7319609e71f1eef8f0685777afccd244633738 |
 
 两次正式构建均成功。Linux主控普通套件190项（其中2项依赖二进制先跳过，随后的固定Xray步骤2/2通过）、前端60/60、类型/生产构建通过；Node普通套件80项（先跳过10项二进制相关用例），随后固定Xray完整80/80通过。不得只摘录首轮的跳过数或将其当作真实核心验收。用户追加复核后，本地完整主控190/190、Node80/80（均无跳过）、前端60/60、类型/生产构建/pip check再通过一轮；因此完整后端本地累计各三轮，关键专项各另三轮。
