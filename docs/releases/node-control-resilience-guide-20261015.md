@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../NODE_CONTROL_RESILIENCE.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/NODE_CONTROL_RESILIENCE.md)
+[当前说明](../NODE_CONTROL_RESILIENCE.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/NODE_CONTROL_RESILIENCE.md)
 
 ---
 
@@ -61,9 +61,9 @@
 ## 5. 已核对的发布证据（2026-10-06）
 
 - 修复源提交：`d3d768d07e4bc94584f03d4256b87e00fef595c1`。
-- PR：[#12](https://github.com/kissow/Marzban/pull/12)；PR CI `37486329103` 成功。
+- PR：[#12](https://github.com/heyinkcode/Marzban/pull/12)；PR CI `37486329103` 成功。
 - 合入 master / 运行时 OCI revision：`eb43761ebcea3e62d550621982a6442cfbcddf62`。
-- 正式构建：[Actions 37486719383](https://github.com/kissow/Marzban/actions/runs/37486719383)，完成时间 `2026-10-06T15:31:59Z`；后端检查、前端检查/构建、Xray pin 和镜像发布全部成功。
+- 正式构建：[Actions 37486719383](https://github.com/heyinkcode/Marzban/actions/runs/37486719383)，完成时间 `2026-10-06T15:31:59Z`；后端检查、前端检查/构建、Xray pin 和镜像发布全部成功。
 - 镜像：`ghcr.io/kissow/marzban:latest`；index `sha256:569aa43f94fdfc7711a05c20c2e498c782ac625cd0e7e38b64503788ab1fbbcb`。
 - linux/amd64 manifest：`sha256:ca3dc61809124339f26922908b115c321fdeb5c24ce5e5ddeb35525126e4a58d`；config `sha256:e5664b41bb02646260f7b6c82a41672f51e503f990a80665225fb7721556f15e`。
 - linux/arm64 manifest：`sha256:889d8f6acd1b548431fbfd054b541356aaecfc4ef33a5afe4ca6ae7703bbef07`；config `sha256:bf3d72427bfc6eb32af3086c99eb922e8e9bf1e1e3666785f14e293ce5f8171d`。

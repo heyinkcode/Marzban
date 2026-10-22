@@ -6,9 +6,9 @@
 
 | 仓库 | 源提交 | PR | 合并/镜像revision | 正式Actions |
 | --- | --- | --- | --- | --- |
-| Marzban | f79598943303fc3884f36920834db3ae8bc21b92 | [17](https://github.com/kissow/Marzban/pull/17) | 93bfbb5b17dd8ee731449976df1a4af4e0f57ca5 | [37657985804](https://github.com/kissow/Marzban/actions/runs/37657985804) |
-| Node | fd651365176fa8a0704973576f39585681815231 | [3](https://github.com/kissow/Marzban-node/pull/3) | 7b45fc0dc3b4451045a06123b52ccdaaa5911b8d | [37657976968](https://github.com/kissow/Marzban-node/actions/runs/37657976968) |
-| Scripts | 174e357716804a95e3a8fbf74bdf4b632a11c767 | [1](https://github.com/kissow/Marzban-scripts/pull/1) | ed274ba82410f9e6f580cbec59b2a15a89ab81ea（文档） | [37657994843](https://github.com/kissow/Marzban-scripts/actions/runs/37657994843) |
+| Marzban | f79598943303fc3884f36920834db3ae8bc21b92 | [17](https://github.com/heyinkcode/Marzban/pull/17) | 93bfbb5b17dd8ee731449976df1a4af4e0f57ca5 | [37657985804](https://github.com/heyinkcode/Marzban/actions/runs/37657985804) |
+| Node | fd651365176fa8a0704973576f39585681815231 | [3](https://github.com/heyinkcode/Marzban-node/pull/3) | 7b45fc0dc3b4451045a06123b52ccdaaa5911b8d | [37657976968](https://github.com/heyinkcode/Marzban-node/actions/runs/37657976968) |
+| Scripts | 174e357716804a95e3a8fbf74bdf4b632a11c767 | [1](https://github.com/heyinkcode/Marzban-scripts/pull/1) | ed274ba82410f9e6f580cbec59b2a15a89ab81ea（文档） | [37657994843](https://github.com/heyinkcode/Marzban-scripts/actions/runs/37657994843) |
 
 PR CI：主控37656957936/37656958582、Node37657534552、scripts37657579664（分支37657210158），均成功。主控完整发现164项，其中2项外部Xray需后续显式步骤执行，真实固定Xray2/2、前端47/47及类型/构建通过。Node第一轮发现60项跳过8项外部实测，第二轮准备v26.3.27后60/60无跳过。本地及独立发布副本再次164/164、60/60、47/47通过，不把共享本地环境当干净LinuxCI。
 
@@ -60,7 +60,7 @@ PR CI：主控37656957936/37656958582、Node37657534552、scripts37657579664（�
 
 ## 合同与范围
 
-[完整管理API/认证/错误/来源迁移/升级回滚](NODE_RELAY_SOURCES.md)、[原Host匹配与订阅兼容](NODE_RELAY_SUBSCRIPTION.md)、[Node REST/RPyC线协议](https://github.com/kissow/Marzban-node/blob/master/docs/node-relay.md)。首版仅VLESS TCP/RAW REALITY、IPv4/DNS-only入口、单跳来源选择；源使用镜像已有Xray独立进程透明TCP转发，目标继续原认证/设备凭据/出口。来源完整快照更新可能短暂影响同源其它中转会话，不是零中断或任意UDP转发。
+[完整管理API/认证/错误/来源迁移/升级回滚](NODE_RELAY_SOURCES.md)、[原Host匹配与订阅兼容](NODE_RELAY_SUBSCRIPTION.md)、[Node REST/RPyC线协议](https://github.com/heyinkcode/Marzban-node/blob/master/docs/node-relay.md)。首版仅VLESS TCP/RAW REALITY、IPv4/DNS-only入口、单跳来源选择；源使用镜像已有Xray独立进程透明TCP转发，目标继续原认证/设备凭据/出口。来源完整快照更新可能短暂影响同源其它中转会话，不是零中断或任意UDP转发。
 
 ## SSH升级与新安装
 
@@ -84,7 +84,7 @@ docker ps --filter label=com.docker.compose.service=marzban --format '{{.ID}}' |
 新Node服务器继续原一键安装，会拉取本仓库新latest：
 
 ```sh
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/kissow/Marzban-scripts/master/marzban-node.sh)" @ install
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/heyinkcode/Marzban-scripts/master/marzban-node.sh)" @ install
 ```
 
 仅新服务器用install；已有Fork不重复adopt、不重装/删卷。新Node仍需主控提供的原客户端证书、与面板一致的原控制/API端口。中转来源/业务入口由主控管理，源安全组放行业务TCP端口。固定核心26.3.27、证书、用户/.env/卷不改；更新脚本保留数据并备份。实际更新前记录备份，后检查准确镜像revision、Node能力/连接、核心，刷新订阅。仅作目标的既有配对Node不因来源功能强制更新。

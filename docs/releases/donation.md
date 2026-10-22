@@ -6,7 +6,7 @@
 
 ## 历史片段 1
 
-原位置：[FORK_FEATURES.md](https://github.com/kissow/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/FORK_FEATURES.md)。
+原位置：[FORK_FEATURES.md](https://github.com/heyinkcode/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/FORK_FEATURES.md)。
 
 ---
 
@@ -18,7 +18,7 @@
 
 ## 历史片段 2
 
-原位置：[CHANGELOG.md](https://github.com/kissow/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/CHANGELOG.md)。
+原位置：[CHANGELOG.md](https://github.com/heyinkcode/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/CHANGELOG.md)。
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## 历史片段 3
 
-原位置：[MR_SHAW_API_AND_RELEASE.md](https://github.com/kissow/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/MR_SHAW_API_AND_RELEASE.md)。
+原位置：[MR_SHAW_API_AND_RELEASE.md](https://github.com/heyinkcode/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/MR_SHAW_API_AND_RELEASE.md)。
 
 ---
 
@@ -44,7 +44,7 @@
 
 ## 历史片段 4
 
-原位置：[MR_SHAW_API_AND_RELEASE.md](https://github.com/kissow/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/MR_SHAW_API_AND_RELEASE.md)。
+原位置：[MR_SHAW_API_AND_RELEASE.md](https://github.com/heyinkcode/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/MR_SHAW_API_AND_RELEASE.md)。
 
 ---
 
@@ -95,14 +95,14 @@ Compatibility note: the current source reads the historical database-pool variab
 当前“捐赠”菜单不是收款接口，也不会调用任何外部收款服务。它由三处组成：
 
 1. 菜单项和点击行为：[`app/dashboard/src/components/Header.tsx`](../../app/dashboard/src/components/Header.tsx) 的 `Link`、`header.donation` 和 `handleOnClose`。
-2. 菜单跳转地址：[`app/dashboard/src/constants/Project.ts`](../../app/dashboard/src/constants/Project.ts) 的 `DONATION_URL`。当前值是 `https://github.com/kissow/Marzban#donation`，点击后打开本 Fork 的捐赠锚点。修改此常量后必须重新构建主面板镜像并更新服务器；只推送 README 不会替换已经运行的前端。
+2. 菜单跳转地址：[`app/dashboard/src/constants/Project.ts`](../../app/dashboard/src/constants/Project.ts) 的 `DONATION_URL`。当前值是 `https://github.com/heyinkcode/Marzban#donation`，点击后打开本 Fork 的捐赠锚点。修改此常量后必须重新构建主面板镜像并更新服务器；只推送 README 不会替换已经运行的前端。
 3. README 中展示的钱包地址：[`README.md`](../../README.md) 和 [`README-zh-cn.md`](../../README-zh-cn.md) 的 `Donation/捐赠` 小节。修改钱包地址时必须同时更新中英文 README，并核对网络名称，不能只改菜单 URL。
 
 当前前端没有独立的捐赠管理页面，也没有捐赠订单、到账监控或二维码生成逻辑。若以后要接入数字货币收款，应作为独立支付功能开发，不能把钱包地址硬编码到管理端或用户端脚本中。
 
 ## 历史片段 5
 
-原位置：[RELEASE_CHECKLIST.md](https://github.com/kissow/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/RELEASE_CHECKLIST.md)。
+原位置：[RELEASE_CHECKLIST.md](https://github.com/heyinkcode/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/RELEASE_CHECKLIST.md)。
 
 ---
 
@@ -119,7 +119,7 @@ Compatibility note: the current source reads the historical database-pool variab
 
 ## 历史片段 6
 
-原位置：[docs/REPOSITORY_UPDATE_FLOW.md](https://github.com/kissow/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/docs/REPOSITORY_UPDATE_FLOW.md)。
+原位置：[docs/REPOSITORY_UPDATE_FLOW.md](https://github.com/heyinkcode/Marzban/blob/7987f8afb7c21d81e02d25ddbc72ad89150f9f83/docs/REPOSITORY_UPDATE_FLOW.md)。
 
 ---
 

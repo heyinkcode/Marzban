@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../NODE_EGRESS_UDP.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/NODE_EGRESS_UDP.md)
+[当前说明](../NODE_EGRESS_UDP.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/NODE_EGRESS_UDP.md)
 
 ---
 

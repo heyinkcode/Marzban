@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../BROWSER_TRANSLATION.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/BROWSER_TRANSLATION.md)
+[当前说明](../BROWSER_TRANSLATION.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/BROWSER_TRANSLATION.md)
 
 ---
 
@@ -44,9 +44,9 @@
 
 ## 代码、CI 与已核验镜像（2026-10-07）
 
-- 源提交：7a0db490577e470f1366f807335152e63a6f456d；[PR #14](https://github.com/kissow/Marzban/pull/14) 已合并。
-- PR CI：[37494129629](https://github.com/kissow/Marzban/actions/runs/37494129629) 成功；干净 Linux 后端 116/116、前端 40/40、类型/生产构建通过。
-- 主分支运行时提交：9659956325e9cb8c39ec36ee6e34e4119f0c6660；正式构建 [37494615636](https://github.com/kissow/Marzban/actions/runs/37494615636) 成功，状态更新时间 2026-10-06T16:25:15Z（香港 2026-10-07 00:25:15）；Linux 116/116、40/40、类型、生产构建、Xray pin 与镜像发布全部通过。
+- 源提交：7a0db490577e470f1366f807335152e63a6f456d；[PR #14](https://github.com/heyinkcode/Marzban/pull/14) 已合并。
+- PR CI：[37494129629](https://github.com/heyinkcode/Marzban/actions/runs/37494129629) 成功；干净 Linux 后端 116/116、前端 40/40、类型/生产构建通过。
+- 主分支运行时提交：9659956325e9cb8c39ec36ee6e34e4119f0c6660；正式构建 [37494615636](https://github.com/heyinkcode/Marzban/actions/runs/37494615636) 成功，状态更新时间 2026-10-06T16:25:15Z（香港 2026-10-07 00:25:15）；Linux 116/116、40/40、类型、生产构建、Xray pin 与镜像发布全部通过。
 - 镜像 ghcr.io/kissow/marzban:latest；index sha256:6838f71ea0e3b97baa1cb217bb83d1f0b1acbb63466fe1e1863a2130220c2d45。
 - linux/amd64 manifest sha256:ebbe138b8230e971b31b84b9184cc4db8a0c43f0285aaafe9e6a7cea256cf62b；config sha256:094bf9a4feb906cd8825781ecc73bf5e8b36fe08b64908169eea3bb1dc287430。
 - linux/arm64 manifest sha256:fa93f84b22945bf4f5871f419f510c575958a187f86f90ce4a52fb1f2b08d66f；config sha256:4a8c8bf71d622984c5da042b43525a202ec2b0d753a7632e5c4c618058bd26a1。

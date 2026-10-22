@@ -29,7 +29,7 @@
 
 ## 2026-10-15 上传、构建与镜像核对
 
-源提交 `d757a111bbb0c972ce55f2d3a7b4f91614742a03` 经 [PR #23](https://github.com/kissow/Marzban/pull/23) 合入 `620e8c66d487ffddaea0639010e7da356c367a00`。分支 [38757830161](https://github.com/kissow/Marzban/actions/runs/38757830161)、PR [38757967218](https://github.com/kissow/Marzban/actions/runs/38757967218) / [38757967478](https://github.com/kissow/Marzban/actions/runs/38757967478) 与正式 [38758495591](https://github.com/kissow/Marzban/actions/runs/38758495591) 均成功。
+源提交 `d757a111bbb0c972ce55f2d3a7b4f91614742a03` 经 [PR #23](https://github.com/heyinkcode/Marzban/pull/23) 合入 `620e8c66d487ffddaea0639010e7da356c367a00`。分支 [38757830161](https://github.com/heyinkcode/Marzban/actions/runs/38757830161)、PR [38757967218](https://github.com/heyinkcode/Marzban/actions/runs/38757967218) / [38757967478](https://github.com/heyinkcode/Marzban/actions/runs/38757967478) 与正式 [38758495591](https://github.com/heyinkcode/Marzban/actions/runs/38758495591) 均成功。
 
 Linux 普通后端共 224 项，其中缺少二进制的 7 项明确跳过；后续固定 Xray v26.3.27 步骤实际执行原中转 2/2、本机出口 34/34，无跳过。前端 65/65，类型和生产构建通过。不能把前一步跳过项算作真实核心执行。
 

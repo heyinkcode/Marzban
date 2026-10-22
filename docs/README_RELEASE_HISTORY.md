@@ -33,7 +33,7 @@
 
 主控revision 93bfbb5b17dd8ee731449976df1a4af4e0f57ca5，Actions37657985804；Node revision 7b45fc0dc3b4451045a06123b52ccdaaa5911b8d，Actions37657976968。scripts合并ed274ba82410f9e6f580cbec59b2a15a89ab81ea，Actions37657994843成功，脚本运行时不变。先在承担来源的Node运行marzban-node update，再在主控运行marzban update；仅作目标的既有配对Node不强制更新。新Node沿用仓库install，现在拉取新latest；旧机不重装、不删卷、不重复adopt。源业务入口TCP需放行，客户端刷新订阅。
 
-[精确配对SHA、index/架构/config摘要、接口与SSH验收证据](https://github.com/kissow/Marzban/blob/master/docs/NODE_RELAY_SOURCES_RELEASE.md)。下方旧记录只描述各自日期的阶段，不代替本轮最新状态；文档[skip ci]提交不改变已核对的运行时镜像revision。
+[精确配对SHA、index/架构/config摘要、接口与SSH验收证据](https://github.com/heyinkcode/Marzban/blob/master/docs/NODE_RELAY_SOURCES_RELEASE.md)。下方旧记录只描述各自日期的阶段，不代替本轮最新状态；文档[skip ci]提交不改变已核对的运行时镜像revision。
 
 > **MR-20261007-RELAY-INTERNAL-SUBSCRIPTION (local fix; NOT published):** Keep original subscription aliases, order and entry count; switch only the matched Node address/port, never append `(Relay)`. Stored Hosts, credentials and forwarding runtime remain unchanged. Reject unmatched/ambiguous targets; preserve short IDs on the output copy. Backend 149/149 passed twice including pinned-Xray process tests; frontend 45/45, type/build, dependency and diff checks passed. Node/scripts need no update. Node-to-Node is a future extension, not supported in this release. [Contract and pending publication/acceptance](NODE_RELAY_SUBSCRIPTION.md).
 

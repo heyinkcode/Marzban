@@ -1,5 +1,7 @@
 # Marzban 开源扩展功能
 
+- [GitHub 用户名迁移与已有服务器更新](docs/GITHUB_NAMESPACE_MIGRATION.md)
+
 基于上游 Marzban 的开源扩展，保留原作者署名、历史与许可证。产品安装见 [README](README.md)，完整导航见[文档中心](docs/README.md)。
 
 | 功能 | 用途与边界 | 使用说明 |

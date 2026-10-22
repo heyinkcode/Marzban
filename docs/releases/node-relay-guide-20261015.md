@@ -2,7 +2,7 @@
 
 原文截至 2026-10-15，整理于 2026-10-16。下方保留开发阶段、测试及发布证据，不是当前使用指引；其中 latest、未发布、预期 revision 等仅指当时状态。
 
-[当前说明](../NODE_RELAY.md) · [历史索引](README.md) · [不可变原文](https://github.com/kissow/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/NODE_RELAY.md)
+[当前说明](../NODE_RELAY.md) · [历史索引](README.md) · [不可变原文](https://github.com/heyinkcode/Marzban/blob/ec7d665e1323108ab2cd5e5a82294492f8e46bac/docs/NODE_RELAY.md)
 
 ---
 
@@ -146,8 +146,8 @@ iperf3 -c "$TEST_NODE_IP" -p 5201 -t 15 -P 1 -R
 
 ## 11. 本轮发布证据与服务器更新
 
-- 源提交：134f12faf5e29e53986ff271a8c8f57b8a38db38；[PR #16](https://github.com/kissow/Marzban/pull/16)，合并运行时 d23502030358930592016f9ff2f7d3f42acad4e7。
-- [PR Linux CI 37637526876](https://github.com/kissow/Marzban/actions/runs/37637526876) 与 [正式构建 37637973415](https://github.com/kissow/Marzban/actions/runs/37637973415) 首次成功；140普通后端 + 2真实Xray进程、44前端、类型/生产构建和核心版本闸门通过。
+- 源提交：134f12faf5e29e53986ff271a8c8f57b8a38db38；[PR #16](https://github.com/heyinkcode/Marzban/pull/16)，合并运行时 d23502030358930592016f9ff2f7d3f42acad4e7。
+- [PR Linux CI 37637526876](https://github.com/heyinkcode/Marzban/actions/runs/37637526876) 与 [正式构建 37637973415](https://github.com/heyinkcode/Marzban/actions/runs/37637973415) 首次成功；140普通后端 + 2真实Xray进程、44前端、类型/生产构建和核心版本闸门通过。
 - 镜像 ghcr.io/kissow/marzban:latest；index sha256:252adac60cdcbcc83a7ef13a080d52876876017a65220c58fcf76539db9ccd03。
 - linux/amd64 manifest sha256:1766ed650d74242fb5119244ba2a0cae67e5d9037415f3abd62819ca15e7c82c；config sha256:fcd8ee6c295ef7c8bbeed67ae7279ade1c0603d98df2b7ada327c49c926fb1aa。
 - linux/arm64 manifest sha256:4abdbdcc4cc31b8ed225c3d4a9e52b5c1269615008d991ae32f98150c0affba3；config sha256:87e06e24d634796ac9d994c87686297870c6bae2179981fc7cc521fa94bb1c54。

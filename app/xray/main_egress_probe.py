@@ -1,4 +1,4 @@
-# Shared behavior ported from the paired kissow/Marzban-node Fork (AGPL-3.0).
+# Shared behavior ported from the paired heyinkcode/Marzban-node Fork (AGPL-3.0).
 """Bounded diagnostics of one managed proxy; never touches the business core.
 
 The worker uses the standard HTTP CONNECT / SOCKS5 wire protocols. It does

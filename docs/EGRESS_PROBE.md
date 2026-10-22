@@ -54,8 +54,8 @@ proxy（仅SOCKS5）：UDP ASSOCIATE后实际发送封装DNS UDP请求，校验�
 
 ## 配对更新和使用检查
 
-目标 Node 需支持 `managed-egress-probe-v1` 及所选出口模式能力。先更新需要检测/修改出口的目标 Node，确认控制连接后更新主控；只承担透明中转且不使用新出口流程的来源不因此强制更新。已有 Fork 使用原 update，不重装、不删卷或重建证书。脚本误报官方镜像时见[处理方法](https://github.com/kissow/Marzban-scripts/blob/master/docs/UPDATE_IMAGE_RECOGNITION.md)。
+目标 Node 需支持 `managed-egress-probe-v1` 及所选出口模式能力。先更新需要检测/修改出口的目标 Node，确认控制连接后更新主控；只承担透明中转且不使用新出口流程的来源不因此强制更新。已有 Fork 使用原 update，不重装、不删卷或重建证书。脚本误报官方镜像时见[处理方法](https://github.com/heyinkcode/Marzban-scripts/blob/master/docs/UPDATE_IMAGE_RECOGNITION.md)。
 
 检测一轮后可再选择三轮，检查代理认证、HTTPS 出口 IP 和所选 DNS/UDP；再用真实客户端确认访问、中转和持续连接。控制已连接、HTTP 200 或检测通过都不能单独代替业务链路验收。
 
-[历史测试与配对发布证据](releases/egress-probe-guide-20261015.md) · [主面板本机出口](https://github.com/kissow/Marzban/blob/master/docs/MAIN_EGRESS.md)
+[历史测试与配对发布证据](releases/egress-probe-guide-20261015.md) · [主面板本机出口](https://github.com/heyinkcode/Marzban/blob/master/docs/MAIN_EGRESS.md)

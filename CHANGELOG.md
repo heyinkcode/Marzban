@@ -1,5 +1,9 @@
 # Marzban 更新摘要
 
+## 2026-10-23
+
+- 同步 heyinkcode 仓库、安装/更新入口和 GHCR 构建命名空间；旧 Fork 更新迁移见[指南](docs/GITHUB_NAMESPACE_MIGRATION.md)。业务协议、数据和固定核心不变。
+
 使用说明与测试/发布证据进入对应功能文档，本页仅保留摘要。历史阶段全文见[按功能归档](docs/releases/README.md)。
 
 ## 2026-10-16

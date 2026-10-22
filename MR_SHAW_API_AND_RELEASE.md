@@ -1,5 +1,7 @@
 # 扩展接口索引
 
+分发所有者迁为 heyinkcode，API/认证/端口合同无变化；[升级边界](docs/GITHUB_NAMESPACE_MIGRATION.md)。
+
 本文只维护现行接口入口和副作用；完整字段、错误码、兼容条件见对应合同。历史 API 描述见[按功能归档](docs/releases/README.md)，不能当作现行合同。
 
 ## 认证与边界

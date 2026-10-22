@@ -1,5 +1,7 @@
 # 文档中心 / Documentation
 
+- [GitHub 用户名迁移与已有服务器更新](GITHUB_NAMESPACE_MIGRATION.md)
+
 README 只介绍产品、安装和使用入口。功能、兼容边界、更新记录与发布证据按下面的入口查阅。
 
 ## 功能与使用
