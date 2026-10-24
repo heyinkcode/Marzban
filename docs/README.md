@@ -20,6 +20,7 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 
 ## 更新、接口与维护
 
+- [用量连续性修复](USAGE_CONTINUITY.md)、[部署与回退闸门](USAGE_CONTINUITY_DEPLOYMENT.md)
 - [更新记录](../CHANGELOG.md)
 - [接口与兼容性](../MR_SHAW_API_AND_RELEASE.md)
 - [配置与环境变量](CONFIGURATION.md)

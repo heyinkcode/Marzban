@@ -248,7 +248,10 @@ def reset_users_data_usage(
 ):
     """Reset all users data usage"""
     dbadmin = crud.get_admin(db, admin.username)
-    crud.reset_all_users_data_usage(db=db, admin=dbadmin)
+    try:
+        crud.reset_all_users_data_usage(db=db, admin=dbadmin)
+    except crud.UsageHistoryProtectedError as exc:
+        raise HTTPException(status_code=409, detail={"code": str(exc)}) from exc
     startup_config = xray.config.include_db_users()
     xray.core.restart(startup_config)
     for node_id, node in list(xray.nodes.items()):

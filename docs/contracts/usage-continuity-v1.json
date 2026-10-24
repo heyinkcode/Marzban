@@ -1,0 +1,70 @@
+{
+  "contract_version": "usage-continuity-repair-v1",
+  "status": "versioned-contract; consult docs/releases/usage-continuity-20261024.md for release evidence",
+  "authentication": "Bearer sudo administrator; every endpoint requires sudo",
+  "database_support": "SQLite only for v1; other engines fail closed with 503",
+  "endpoints": {
+    "preview": {"method":"GET","path":"/api/usage-continuity/v1/users/{username}/preview"},
+    "apply": {"method":"POST","path":"/api/usage-continuity/v1/users/{username}/repairs"},
+    "receipt": {"method":"GET","path":"/api/usage-continuity/v1/repairs/{operation_id}"}
+  },
+  "preview_example": {
+    "capability":"usage-continuity-repair-v1",
+    "eligible":true,
+    "blockers":[],
+    "history_complete":true,
+    "reset_origin":"unrecorded",
+    "history":[
+      {"id":1,"reset_at":"2026-09-01T00:00:00.000000Z","used_traffic_at_reset":"0"},
+      {"id":2,"reset_at":"2026-10-01T00:00:00.000000Z","used_traffic_at_reset":"6000"}
+    ],
+    "restorable_bytes":"6000",
+    "expected": {
+      "user_id":1,"username":"example_user","created_at":"2026-09-01T00:00:00.000000Z",
+      "status":"active","data_limit":"10000","expire":1792530000,"reset_strategy":"month",
+      "device_limit":0,"device_limit_mode":"hwid","device_limit_action":"reject_new","has_next_plan":false,
+      "identity_seal":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "history_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "history_count":2,
+      "initial_reset":{"id":1,"reset_at":"2026-09-01T00:00:00.000000Z","used_traffic_at_reset":"0"},
+      "latest_reset":{"id":2,"reset_at":"2026-10-01T00:00:00.000000Z","used_traffic_at_reset":"6000"},
+      "observed_used_traffic":"100","observed_lifetime_used_traffic":"6100"
+    }
+  },
+  "apply_body": {
+    "operation_id":"canonical-lowercase-UUID",
+    "reason":"restore_single_monthly_reset",
+    "evidence_sha256":"64 lowercase hex digest of externally verified entitlement evidence",
+    "expected":"copy the ENTIRE preview.expected object unchanged"
+  },
+  "receipt_example": {
+    "capability":"usage-continuity-repair-v1","status":"applied",
+    "operation_id":"11111111-1111-4111-8111-111111111111",
+    "payload_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "evidence_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "user_id":1,"username":"example_user","created_at":"2026-09-01T00:00:00.000000Z",
+    "reset_id":2,"reset_at":"2026-10-01T00:00:00.000000Z","restored_bytes":"6000",
+    "used_traffic_before":"125","used_traffic_after":"6125",
+    "lifetime_used_traffic_before":"6125","lifetime_used_traffic_after":"6125",
+    "data_limit":"10000","expire":1792530000,"reset_strategy":"month",
+    "applied_at":"2026-10-02T00:00:00.000000Z","actor":"example_admin"
+  },
+  "semantics": [
+    "All byte counts are exact decimal strings. IDs and Unix expire are integers. UTC timestamps retain six fractional digits and Z.",
+    "Preview is read-only and complete for this user. It returns expected even if ineligible; apply rechecks all guards under a database write lock.",
+    "Only active, not expired, positive finite quota, month strategy, initial zero reset near creation plus exactly one positive monthly reset, no pending plan or previous recovery are eligible. Restored current must remain strictly below quota.",
+    "Existing reset logs do not record reset actor/origin. External entitlement proof is mandatory; API cannot establish payment legitimacy. evidence_sha256 is an audit reference, not validation of external proof.",
+    "POST returns 200 immutable receipt. It atomically adds B to CURRENT raw, allowing concurrent monotonic increments since preview. It never sets current to a stale snapshot.",
+    "UUID is globally unique. Identical URL username + parsed JSON payload returns original receipt without reapplying, including after later resets or account deletion. Same UUID with different payload or path returns 409. Different UUID for already recovered user/reset returns 409.",
+    "GET receipt returns the same immutable object. 404 means no receipt is visible at the read instant, NOT proof that a concurrent request cannot commit. On uncertainty, preserve lock and explicitly resume only the same UUID, path and payload. No cancellation or tombstone API in v1.",
+    "payload_sha256 = SHA256 UTF8 JSON of {username:<exact path>,request:<parsed request JSON>}, sorted object keys, compact separators, ensure_ascii=true. Request.operation_id is canonical UUID. Arrays preserve order.",
+    "No quota, expiry, identity, device policy, status, reset_at, next_plan, admin/system/node usage or Xray writes. Native future reset timing is unchanged.",
+    "Lifetime = current + original reset sum - recovery sum. Subsequent ordinary resets preserve this invariant. Full-history clearing is rejected for repaired users.",
+    "No automatic retry with a new UUID or modified expected snapshot. Explicit 409 requires diagnosis; never drop COUNTER_REGRESSION checks or globally substitute lifetime."
+  ],
+  "errors": {
+    "401":"authentication missing/invalid","403":"not sudo","404":"unknown user or receipt",
+    "409":"detail is {code:<machine-readable>, blockers?:[...]}: ineligible, snapshot_changed, observed_counter_changed, operation_payload_mismatch, operation_target_conflict, concurrent_change",
+    "422":"invalid schema; unknown fields rejected","503":"unsupported_database or database_busy; uncertainty requires GET same receipt"
+  }
+}

@@ -6,6 +6,8 @@
 
 ## 认证与边界
 
+sudo-only `/api/usage-continuity/v1` 的 preview、repairs POST 与 receipt GET，见[严格合同](docs/contracts/usage-continuity-v1.json)及[账目说明](docs/USAGE_CONTINUITY.md)。不是通用充值/清零接口；先按[发布记录](docs/releases/usage-continuity-20261024.md)核对运行版本。
+
 下表节点管理接口均在 `/api` 下，要求原超级管理员 Bearer Token。令牌沿用 `POST /api/admin/token`；不得公开管理员凭据、Node 会话或代理密码。全部原版接口以代码和运行实例 OpenAPI 为准。
 
 环境变量不是 API，见[配置说明](docs/CONFIGURATION.md)。Node 内部 REST/RPyC 使用既有认证控制连接，不应暴露为公共监控服务，也不承载中转用户流量。

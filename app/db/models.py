@@ -98,6 +98,12 @@ class User(Base):
         "UserDevice", back_populates="user", cascade="all, delete-orphan"
     )
     usage_logs = relationship("UserUsageResetLogs", back_populates="user")  # maybe rename it to reset_usage_logs?
+    usage_recoveries = relationship(
+        "UserUsageRecovery", viewonly=True,
+        primaryjoin="and_(User.id == foreign(UserUsageRecovery.user_id), "
+                    "User.username == foreign(UserUsageRecovery.username), "
+                    "User.created_at == foreign(UserUsageRecovery.user_created_at))",
+    )
     expire = Column(Integer, nullable=True)
     admin_id = Column(Integer, ForeignKey("admins.id"))
     admin = relationship("Admin", back_populates="users")
@@ -127,26 +133,26 @@ class User(Base):
 
     @hybrid_property
     def reseted_usage(self) -> int:
-        return int(sum([log.used_traffic_at_reset for log in self.usage_logs]))
+        return int(sum(log.used_traffic_at_reset for log in self.usage_logs)
+                   - sum(item.restored_bytes for item in self.usage_recoveries))
 
     @reseted_usage.expression
     def reseted_usage(cls):
-        return (
-            select(func.sum(UserUsageResetLogs.used_traffic_at_reset)).
-            where(UserUsageResetLogs.user_id == cls.id).
-            label('reseted_usage')
-        )
+        resets = select(func.coalesce(func.sum(UserUsageResetLogs.used_traffic_at_reset), 0)).where(
+            UserUsageResetLogs.user_id == cls.id).correlate(cls).scalar_subquery()
+        recovered = select(func.coalesce(func.sum(UserUsageRecovery.restored_bytes), 0)).where(
+            UserUsageRecovery.user_id == cls.id,
+            UserUsageRecovery.username == cls.username,
+            UserUsageRecovery.user_created_at == cls.created_at).correlate(cls).scalar_subquery()
+        return (resets - recovered).label('reseted_usage')
 
     @property
     def lifetime_used_traffic(self) -> int:
-        return int(
-            sum([log.used_traffic_at_reset for log in self.usage_logs])
-            + self.used_traffic
-        )
+        return int(self.reseted_usage + self.used_traffic)
 
     @property
     def last_traffic_reset_time(self):
-        return self.usage_logs[-1].reset_at if self.usage_logs else self.created_at
+        return max(log.reset_at for log in self.usage_logs) if self.usage_logs else self.created_at
 
     @property
     def excluded_inbounds(self):
@@ -243,6 +249,27 @@ class UserUsageResetLogs(Base):
     user = relationship("User", back_populates="usage_logs")
     used_traffic_at_reset = Column(BigInteger, nullable=False)
     reset_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserUsageRecovery(Base):
+    """Append-only audit survives account deletion; identity includes creation time.
+
+    Deliberately no cascading FK: receipts remain readable after user deletion.
+    A reused numeric user ID cannot inherit an earlier account's correction.
+    """
+    __tablename__ = "user_usage_recoveries"
+    __table_args__ = (
+        UniqueConstraint("user_id", "user_created_at", "username", "reset_id", name="uq_usage_recovery_target"),
+        CheckConstraint("restored_bytes > 0", name="ck_usage_recovery_positive"),
+    )
+    operation_id = Column(String(36), primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    username = Column(String(34), nullable=False)
+    user_created_at = Column(DateTime, nullable=False)
+    reset_id = Column(Integer, nullable=False)
+    restored_bytes = Column(BigInteger, nullable=False)
+    payload_sha256 = Column(String(64), nullable=False)
+    receipt = Column(JSON, nullable=False)
 
 
 class Proxy(Base):

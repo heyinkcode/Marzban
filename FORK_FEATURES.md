@@ -6,6 +6,7 @@
 
 | 功能 | 用途与边界 | 使用说明 |
 | --- | --- | --- |
+| 用量连续性修复 | sudo 审核后的单次月重置恢复，原子加回当前量且不重复累计；SQLite 严格限制 | [账目与接口](docs/USAGE_CONTINUITY.md) |
 | 节点状态 | 分别显示控制连接、资源和活动采样；在线用户不等于设备或连接数 | [活动统计](docs/NODE_ACTIVITY_AND_POLICY.md)、[连接恢复](docs/NODE_CONTROL_RESILIENCE.md) |
 | 节点出口代理 | 每个 Node 独立配置 HTTP/SOCKS5；DNS/UDP 按模式处理 | [出口与 UDP](docs/NODE_EGRESS_UDP.md) |
 | 出口连接检测 | 从目标 Node 检测代理握手、HTTPS 出口和所选 DNS/UDP；不是客户端整链测速 | [检测与安全应用](docs/EGRESS_PROBE.md) |
