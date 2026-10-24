@@ -1,6 +1,30 @@
 # 用量连续性 v1 — 验证与发布记录（2026-10-24）
 
-状态：正式发布候选，PR/Actions/镜像证据待回填，生产未修改。源基线 `aad87b9` 与先前 `94290ac7f2c7a15193fdfca04492d314e306f0c9` 文件树相同，运行时基线 `ac566ff59aa9d79438b56931feba785ad469b688`。
+状态：主控代码已合并，正式双架构镜像已发布并核验；生产服务器未更新、账号修复未执行。源基线 `aad87b9` 与先前 `94290ac7f2c7a15193fdfca04492d314e306f0c9` 文件树相同，上一运行时基线 `ac566ff59aa9d79438b56931feba785ad469b688`。
+
+## 正式发布证据
+
+- 功能源 `c4e1809c4f16bdc3c932c7522e205351ec36110f`，含本地验证记录的 PR 源 `4259106cbe5bf98b6ddaf875ae075983c4d74a42`；远端完整 tree 与本地一致。
+- [PR #28](https://github.com/heyinkcode/Marzban/pull/28) 合并为 `d4ccc9d573888a7f1d249f0bdaf14a9c0f5a6473`。
+- [分支检查](https://github.com/heyinkcode/Marzban/actions/runs/40073010173)、[PR 分支检查](https://github.com/heyinkcode/Marzban/actions/runs/40073015436)、[PR 镜像演练](https://github.com/heyinkcode/Marzban/actions/runs/40073015463) 均成功后合并。
+- [正式构建 40073602093](https://github.com/heyinkcode/Marzban/actions/runs/40073602093) 成功。普通 Linux 后端272项（无核心阶段7项跳过），随后真实固定核心补跑中转2/2、本机出口34/34；前端65/65、类型与生产构建通过。
+- PR 和正式构建均在无网络 amd64 容器中通过真实 Xray 26.3.27 / Alembic 全历史空库至旧 head、合成旧用户与日志、新 head 升级、重复升级、空审计降级和有回执拒绝降级。确认既有数据快照不变。无效数据库路径下镜像默认 CMD 非零退出，没有启动应用。
+- 2026-10-24 07:34 UTC 匿名核对注册表 index、两架构 manifest/config 的原始字节 SHA-256 和 OCI revision；前后 latest 一致，index 与正式构建输出完全相同。两架构 CMD 均为 `alembic upgrade head && exec python main.py`。arm64 已构建及制品核验，未在真实 arm64 生产机上运行验收。
+
+镜像：`ghcr.io/heyinkcode/marzban:latest`（同时发布 `sha-d4ccc9d`）；不可变 index：
+
+```text
+sha256:cd44bdaef4887a4391cac19f1db4fff96e6558f6cb7f3cee3334a1b8710d5153
+```
+
+| 架构 | manifest SHA-256 | config / 本地 image ID SHA-256 |
+| --- | --- | --- |
+| linux/amd64 | `8c7c530fb9a63985a10f3efd40e09157a551ed60b4bbde1819bfeec06be0c139` | `1317d99a125f5f14a952e209e9a9767fb94d63b4f565c0d56b0a33ef5c360fd2` |
+| linux/arm64 | `cac53e6649673ea627117f59a755988fa1e4cc7a5c565986a568c8d0676aa5e9` | `bfc23830959c9ba88361b03ef08077bc356d1209af9076609b273530b10ae061` |
+
+两架构 revision 均为 `d4ccc9d573888a7f1d249f0bdaf14a9c0f5a6473`。后续纯文档提交不改变此运行时 revision，不重新构建业务镜像。CI 提示既有 Actions Node20 运行环境弃用及 ubuntu-latest 迁移，未导致此次检查失败；不把这些提示当作产品失败或已完成平台升级。
+
+已有标准实例使用[正式升级步骤](../USAGE_CONTINUITY_DEPLOYMENT.md)，先确认当前部署、备份再拉取；迁移后唯一 head 预期 `c345de67fa89`。只更新主控，不要求更新 Node。镜像安装本身不恢复任何账号，实际修复仍需独立核实权益和明确授权。
 
 ## 本次发布范围
 

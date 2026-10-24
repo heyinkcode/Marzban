@@ -15,12 +15,11 @@
 仅适用于已确认由本项目脚本管理、Compose 使用本 Fork `latest` 的主控。先刷新管理脚本，再更新（命令应逐行执行，失败停止）：
 
 ```bash
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/heyinkcode/Marzban-scripts/master/marzban.sh)" @ install-script
-sudo marzban update
+sudo bash -c 'set -e; f=$(mktemp); trap '\''rm -f "$f"'\'' EXIT; curl -fsSL https://raw.githubusercontent.com/heyinkcode/Marzban-scripts/master/marzban.sh -o "$f"; bash "$f" install-script; marzban update'
 sudo marzban status
 ```
 
-`install-script` 仅刷新本机管理命令，不重新安装服务。`update` 先备份再拉取并重建主控容器，会短暂中断主控服务，须在授权维护窗口执行。必须保留脚本输出的备份路径；拉取/迁移失败时不要连续重试或删除数据卷。
+先完整下载脚本，下载失败不继续调用旧命令，退出时只清理本次 mktemp 文件。`install-script` 仅刷新本机管理命令，不重新安装服务。`update` 先备份再拉取并重建主控容器，会短暂中断主控服务，须在授权维护窗口执行。必须保留脚本输出的备份路径；拉取/迁移失败时不要连续重试或删除数据卷。
 
 自定义 Compose、固定 digest/tag 或非默认命令名的部署，必须按实际模型单独制定升级命令，不能盲目套用以上命令。不要执行 `down -v`、重装、清库或 prune。
 
