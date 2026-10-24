@@ -33,7 +33,9 @@ from app.db.models import (
     UserDevice,
     UserTemplate,
     UserUsageResetLogs,
+    UserUsageRecovery,
 )
+from app.db.usage_accounting import lock_user_usage, UsageHistoryProtectedError
 from app.models.admin import AdminCreate, AdminModify, AdminPartialModify
 from app.models.node import NodeCreate, NodeModify, NodeStatus, NodeUsageResponse
 from app.models.proxy import ProxyHost as ProxyHostModify
@@ -556,7 +558,7 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
     return dbuser
 
 
-def reset_user_data_usage(db: Session, dbuser: User) -> User:
+def reset_user_data_usage(db: Session, dbuser: User, *, due_at: datetime = None) -> User | None:
     """
     Resets the data usage of a user and logs the reset.
 
@@ -567,6 +569,13 @@ def reset_user_data_usage(db: Session, dbuser: User) -> User:
     Returns:
         User: The updated user object.
     """
+    lock_user_usage(db, dbuser)
+    if due_at is not None:
+        days = {"day": 1, "week": 7, "month": 30, "year": 365}.get(dbuser.data_limit_reset_strategy)
+        if (days is None or dbuser.status not in (UserStatus.active, UserStatus.limited)
+                or due_at < dbuser.last_traffic_reset_time + timedelta(days=days)):
+            db.rollback()
+            return None
     usage_log = UserUsageResetLogs(
         user=dbuser,
         used_traffic_at_reset=dbuser.used_traffic,
@@ -575,7 +584,7 @@ def reset_user_data_usage(db: Session, dbuser: User) -> User:
 
     dbuser.used_traffic = 0
     dbuser.node_usages.clear()
-    if dbuser.status not in (UserStatus.expired or UserStatus.disabled):
+    if dbuser.status not in (UserStatus.expired, UserStatus.disabled):
         dbuser.status = UserStatus.active.value
 
     if dbuser.next_plan:
@@ -600,7 +609,9 @@ def reset_user_by_next(db: Session, dbuser: User) -> User:
         User: The updated user object.
     """
 
+    lock_user_usage(db, dbuser)
     if (dbuser.next_plan is None):
+        db.rollback()
         return
 
     usage_log = UserUsageResetLogs(
@@ -867,6 +878,18 @@ def reset_all_users_data_usage(db: Session, admin: Optional[Admin] = None):
     if admin:
         query = query.filter(User.admin == admin)
 
+    # Serialize this destructive path too. A corrected ledger cannot have its
+    # reset history cleared without losing its audit/lifetime invariant.
+    with db.no_autoflush:
+        query.update({User.used_traffic: User.used_traffic}, synchronize_session=False)
+        protected = query.join(UserUsageRecovery, and_(
+            UserUsageRecovery.user_id == User.id,
+            UserUsageRecovery.username == User.username,
+            UserUsageRecovery.user_created_at == User.created_at)).first()
+        if protected:
+            db.rollback()
+            raise UsageHistoryProtectedError("usage_recovery_history_protected")
+        db.expire_all()
     for dbuser in query.all():
         dbuser.used_traffic = 0
         if dbuser.status not in [UserStatus.on_hold, UserStatus.expired, UserStatus.disabled]:

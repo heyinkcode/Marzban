@@ -1,5 +1,9 @@
 # Marzban 更新摘要
 
+## 2026-10-24
+
+- 增加受限、幂等、可审计的单次月重置连续性修复；保留额度/expiry/重置锚点。普通重置增加计数事务保护，修复记录阻止清空历史。[说明](docs/USAGE_CONTINUITY.md)
+
 ## 2026-10-23
 
 - 同步 heyinkcode 仓库、安装/更新入口和 GHCR 构建命名空间；旧 Fork 更新迁移见[指南](docs/GITHUB_NAMESPACE_MIGRATION.md)。业务协议、数据和固定核心不变。

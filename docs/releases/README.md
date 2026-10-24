@@ -18,6 +18,7 @@
 | 多语言与手机布局 | [说明](../DASHBOARD_I18N_MOBILE.md) | [发布历史](i18n-mobile.md) |
 | 主面板 TCP 中转 | [说明](../NODE_RELAY.md) | [发布历史](main-relay.md) |
 | 主面板使用系数 | [说明](../MAIN_USAGE_COEFFICIENT.md) | [发布历史](main-usage.md) |
+| 单次月重置用量连续性 | [说明](../USAGE_CONTINUITY.md) | [发布记录](usage-continuity-20261024.md) |
 | 节点初连与调度器 | [说明](../NODE_CONNECTION_RELEASE.md) | [发布历史](node-connection.md) |
 | 节点重连与恢复 | [说明](../NODE_RECOVERY_RELEASE.md) | [发布历史](node-recovery.md) |
 | Marzban 或 Node 中转到目标 Node | [说明](../NODE_RELAY_SOURCES.md) | [发布历史](node-relay-sources.md) |
