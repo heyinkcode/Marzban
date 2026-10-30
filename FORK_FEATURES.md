@@ -6,7 +6,7 @@
 
 | 功能 | 用途与边界 | 使用说明 |
 | --- | --- | --- |
-| 专线 Node 授权（本地开发，未发布） | 原组件用户权限弹窗、独立节点模式设置；网站按管理员归属/委派开通，查询实际生效状态 | [面板入口与通用网站API](docs/DEDICATED_NODE_ACCESS.md) |
+| 专线 Node 授权 | 原组件用户权限弹窗、独立节点模式设置；网站按管理员归属/委派开通，查询实际生效状态 | [面板入口与通用网站API](docs/DEDICATED_NODE_ACCESS.md) |
 | 用量连续性修复 | sudo 审核后的单次月重置恢复，原子加回当前量且不重复累计；SQLite 严格限制 | [账目与接口](docs/USAGE_CONTINUITY.md) |
 | 节点状态 | 分别显示控制连接、资源和活动采样；在线用户不等于设备或连接数 | [活动统计](docs/NODE_ACTIVITY_AND_POLICY.md)、[连接恢复](docs/NODE_CONTROL_RESILIENCE.md) |
 | 节点出口代理 | 每个 Node 独立配置 HTTP/SOCKS5；DNS/UDP 按模式处理 | [出口与 UDP](docs/NODE_EGRESS_UDP.md) |
