@@ -47,7 +47,7 @@ STATUS_TEXTS = {
 def generate_v2ray_links(proxies: dict, inbounds: dict, extra_data: dict, reverse: bool) -> list:
     format_variables = setup_format_variables(extra_data)
     conf = V2rayShareLink()
-    return process_inbounds_and_tags(inbounds, proxies, format_variables, conf=conf, reverse=reverse)
+    return process_inbounds_and_tags(inbounds, proxies, format_variables, conf=conf, reverse=reverse, user_identity=extra_data)
 
 
 def generate_clash_subscription(
@@ -60,7 +60,7 @@ def generate_clash_subscription(
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds, proxies, format_variables, conf=conf, reverse=reverse, user_identity=extra_data
     )
 
 
@@ -71,7 +71,7 @@ def generate_singbox_subscription(
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds, proxies, format_variables, conf=conf, reverse=reverse, user_identity=extra_data
     )
 
 
@@ -82,7 +82,7 @@ def generate_outline_subscription(
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds, proxies, format_variables, conf=conf, reverse=reverse, user_identity=extra_data
     )
 
 
@@ -93,7 +93,7 @@ def generate_v2ray_json_subscription(
 
     format_variables = setup_format_variables(extra_data)
     return process_inbounds_and_tags(
-        inbounds, proxies, format_variables, conf=conf, reverse=reverse
+        inbounds, proxies, format_variables, conf=conf, reverse=reverse, user_identity=extra_data
     )
 
 
@@ -242,9 +242,12 @@ def process_inbounds_and_tags(
             OutlineConfiguration
         ],
         reverse=False,
+        user_identity=None,
 ) -> Union[List, str]:
     # Lazy import: UserResponse imports this module while DB models initialize.
     from app.xray.node_relay_service import subscription_hosts
+    from app.db.dedicated_access import filter_hosts
+    identity = user_identity or {}
 
     _inbounds = []
     for protocol, tags in inbounds.items():
@@ -268,7 +271,7 @@ def process_inbounds_and_tags(
 
             format_variables.update({"TRANSPORT": inbound["network"]})
             host_inbound = inbound.copy()
-            for host in subscription_hosts(tag):
+            for host in filter_hosts(subscription_hosts(tag), identity.get("username"), identity.get("created_at"), protocol.value):
                 sni = ""
                 sni_list = host["sni"] or inbound["sni"]
                 if sni_list:

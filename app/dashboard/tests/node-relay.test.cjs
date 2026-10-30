@@ -10,7 +10,8 @@ test('relay preview describes a path, never creates or renames a subscription en
   assert.ok(!component.includes('(Relay)'));
   assert.match(component, /main\.example\.com/);
   const share = fs.readFileSync(path.join(root, '../subscription/share.py'), 'utf8');
-  assert.match(share, /for host in subscription_hosts\(tag\):/);
+  assert.match(share, /for host in filter_hosts\(subscription_hosts\(tag\),/);
+  assert.match(share, /identity\.get\("username"\)/);
   assert.ok(!share.includes('*subscription_hosts(tag)'));
 });
 

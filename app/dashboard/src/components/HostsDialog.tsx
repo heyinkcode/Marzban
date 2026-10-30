@@ -129,6 +129,7 @@ const hostsSchema = z.record(
   z.string().min(1),
   z.array(
     z.object({
+      node_id: z.number().int().positive().nullable().optional(),
       remark: z.string().refine(value => value.length > 0, () => ({ message: translate("hostsDialog.remarkRequired") })),
       address: z.string().refine(value => value.length > 0, () => ({ message: translate("hostsDialog.addressRequired") })),
       port: z

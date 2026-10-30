@@ -26,6 +26,7 @@ class Node(BaseModel):
 
 class NodeCreate(Node):
     add_as_new_host: bool = True
+    access_mode: Literal["public", "restricted"] = "public"
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "name": "DE node",
@@ -59,6 +60,7 @@ class NodeModify(Node):
 
 class NodeResponse(Node):
     id: int
+    access_mode: Literal["public", "restricted"] = "public"
     xray_version: Optional[str] = None
     status: NodeStatus
     message: Optional[str] = None

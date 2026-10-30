@@ -24,6 +24,7 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  Select,
   Switch,
   Text,
   Tooltip,
@@ -71,6 +72,7 @@ import { NodeEgressCard } from "./NodeEgressCard";
 import { NodeHealthCard } from "./NodeHealthCard";
 import { NodeRelayCard } from "./NodeRelayCard";
 import { MainUsageCard } from "./MainUsageCard";
+import { DedicatedNodeSettings } from "./DedicatedAccessModal";
 
 import { fetch } from "service/http";
 import { Input } from "./Input";
@@ -559,6 +561,19 @@ const NodeForm: NodeFormType = ({
           </Box>
         </HStack>
         {addAsHost && (
+          <FormControl>
+            <FormLabel fontSize="sm" display="flex" alignItems="center" gap={2}>
+              {t("dedicated.mode")}
+              <Tooltip label={t("dedicated.createHelp")} hasArrow><Text as="span" tabIndex={0}
+                aria-label={t("dedicated.createHelp")} color="gray.500" cursor="help">ⓘ</Text></Tooltip>
+            </FormLabel>
+            <Select size="sm" {...form.register("access_mode")} isDisabled={isLoading}>
+              <option value="public">{t("dedicated.public")}</option>
+              <option value="restricted">{t("dedicated.restricted")}</option>
+            </Select>
+          </FormControl>
+        )}
+        {addAsHost && (
           <FormControl py={1}>
             <Checkbox {...form.register("add_as_new_host")}>
               <FormLabel m={0}>{t("nodes.addHostForEveryInbound")}</FormLabel>
@@ -648,6 +663,7 @@ export const NodesDialog: FC = () => {
             {isLoading && "loading..."}
 
             <MainUsageCard enabled={isEditingNodes} />
+            <DedicatedNodeSettings nodes={nodeList} />
             <Accordion w="full" allowMultiple index={openIndexes} onChange={onAccordionChange}>
               <VStack w="full">
                 {!isLoading &&

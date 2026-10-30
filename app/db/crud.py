@@ -126,6 +126,7 @@ def add_host(db: Session, inbound_tag: str, host: ProxyHostModify) -> List[Proxy
         ProxyHost(
             remark=host.remark,
             address=host.address,
+            node_id=host.node_id,
             port=host.port,
             path=host.path,
             sni=host.sni,
@@ -158,6 +159,7 @@ def update_hosts(db: Session, inbound_tag: str, modified_hosts: List[ProxyHostMo
         ProxyHost(
             remark=host.remark,
             address=host.address,
+            node_id=host.node_id,
             port=host.port,
             path=host.path,
             sni=host.sni,
@@ -1584,10 +1586,15 @@ def create_node(db: Session, node: NodeCreate) -> Node:
     Returns:
         Node: The newly created Node object.
     """
+    from app.db.dedicated_access import validate_distinct_core
+    validate_distinct_core(db, node.address, node.access_mode)
     dbnode = Node(name=node.name,
                   address=node.address,
+                  access_mode=node.access_mode,
+                  access_revision=1 if node.access_mode == "restricted" else 0,
                   port=node.port,
-                  api_port=node.api_port)
+                  api_port=node.api_port,
+                  usage_coefficient=node.usage_coefficient)
 
     db.add(dbnode)
     db.commit()
@@ -1623,6 +1630,9 @@ def update_node(db: Session, dbnode: Node, modify: NodeModify) -> Node:
     Returns:
         Node: The updated Node object.
     """
+    if modify.address is not None:
+        from app.db.dedicated_access import validate_distinct_core
+        validate_distinct_core(db, modify.address, dbnode.access_mode, dbnode.id)
     if modify.name is not None:
         dbnode.name = modify.name
 

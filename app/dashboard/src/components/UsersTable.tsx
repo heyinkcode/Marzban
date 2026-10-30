@@ -47,6 +47,7 @@ import { formatBytes } from "utils/formatByte";
 import { OnlineBadge } from "./OnlineBadge";
 import { OnlineStatus } from "./OnlineStatus";
 import { Pagination } from "./Pagination";
+import { DedicatedUserAccessButton } from "./DedicatedAccessModal";
 import { StatusBadge } from "./StatusBadge";
 
 const EmptySectionIcon = chakra(AddFileIcon);
@@ -436,7 +437,7 @@ export const UsersTable: FC<UsersTableProps> = (props) => {
                                   />
                                 </Box>
                               </VStack>
-                              <HStack w="full" justifyContent="space-between">
+                              <HStack w="full" justifyContent="space-between" flexWrap={{ base: "wrap", sm: "nowrap" }}>
                                 <Box width="full">
                                   <StatusBadge
                                     compact
@@ -733,6 +734,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user }) => {
           </Tooltip>
         </div>
       </CopyToClipboard>
+      <DedicatedUserAccessButton username={user.username} compact />
       <Tooltip label={t("ui.qrCode")} placement="top">
         <IconButton
           p="0 !important"

@@ -173,6 +173,14 @@ class RelayStoreTests(unittest.TestCase):
         self.engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
         Base.metadata.create_all(self.engine)
         self.db = sessionmaker(bind=self.engine)()
+        # Subscription generation now reads the authoritative Node ACL too.
+        from contextlib import contextmanager
+        @contextmanager
+        def access_db():
+            yield self.db
+        self.access_context = patch("app.db.GetDB", access_db)
+        self.access_context.start()
+        self.addCleanup(self.access_context.stop)
         self.runtime = FakeRuntime()
         self.remotes = {}
         self.conf = config()
@@ -673,7 +681,8 @@ class RelayMigrationTests(unittest.TestCase):
         settings = Config(str(root / "alembic.ini"))
         settings.set_main_option("script_location", str(root / "app/db/migrations"))
         script = ScriptDirectory.from_config(settings)
-        self.assertEqual(script.get_heads(), ["c345de67fa89"])
+        self.assertEqual(script.get_heads(), ["d456ef78ab90"])
+        self.assertEqual(script.get_revision("d456ef78ab90").down_revision, "c345de67fa89")
         self.assertEqual(script.get_revision("c345de67fa89").down_revision, "b234cd56ef78")
         self.assertEqual(script.get_revision("b234cd56ef78").down_revision, "a123bc45de67")
         self.assertEqual(script.get_revision("a123bc45de67").down_revision, "9012ab34cd56")

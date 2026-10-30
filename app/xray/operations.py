@@ -171,7 +171,8 @@ def _device_account_targets():
     for node_id, node in list(xray.nodes.items()):
         try:
             if node.connected and node.started:
-                targets.append((node.api, "node"))
+                from app.xray.node_access import guard_api
+                targets.append((guard_api(node_id, node), "node"))
         except Exception as exc:
             logger.warning("Skipping node %s account reconciliation: %s", node_id, exc)
     return targets
@@ -273,6 +274,7 @@ def _add_node(dbnode: "DBNode"):
                                      ssl_key=tls['key'],
                                      ssl_cert=tls['certificate'],
                                      usage_coefficient=dbnode.usage_coefficient)
+    xray.nodes[dbnode.id].access_mode = getattr(dbnode, "access_mode", "public")
 
     return xray.nodes[dbnode.id]
 
@@ -298,6 +300,11 @@ def _send_node_device_policies(node_id, policies):
     try:
         if not node.connected or not node.started:
             return None
+        if getattr(node, "access_mode", "public") == "restricted":
+            from app.db.dedicated_access import policy_snapshot
+            with GetDB() as db:
+                _, _, identities = policy_snapshot(db, node_id)
+            policies = [policy for policy in policies if policy.get("user") in identities]
         setter = getattr(node, "set_device_policies", None)
         if setter is None:
             node.device_policy_sync = {"policy_sync_status": "unsupported"}
@@ -448,6 +455,11 @@ def _operate_node(node_id, config, restart, automatic):
         stage = "Prepare node configuration / health"
         if config is None:
             config = xray.config.include_db_users()
+        from app.xray.node_access import prepare_config, acknowledge
+        config, access_mode, access_revision = prepare_config(config, node_id, dbnode)
+        node.access_mode = access_mode
+        if access_mode == "restricted" and getattr(node, "access_applied_revision", None) != access_revision:
+            restart = True
         config = for_node(config, egress, node.get_health()
                           if egress and egress.get("udp_mode", "legacy") != "legacy" else None)
 
@@ -456,6 +468,7 @@ def _operate_node(node_id, config, restart, automatic):
             node.restart(config)
         else:
             node.start(config)
+        acknowledge(node, access_mode, access_revision)
         stage = "Read Xray version"
         version = node.get_version()
         # Connection readiness is independent of the best-effort, potentially
@@ -506,6 +519,9 @@ def check_node_health(node_id):
         # stale failure/connecting state; do not rewrite healthy rows each tick.
         with GetDB() as db:
             dbnode = crud.get_node_by_id(db, node_id)
+            if (dbnode and getattr(dbnode, "access_mode", "public") == "restricted"
+                    and getattr(node, "access_applied_revision", None) != dbnode.access_revision):
+                return "restart"
             if dbnode and dbnode.status in (NodeStatus.error, NodeStatus.connecting):
                 version = node.get_version() or dbnode.xray_version
                 _change_node_status(node_id, NodeStatus.connected, version=version)

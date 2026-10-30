@@ -62,6 +62,7 @@ import { RadioGroup } from "./RadioGroup";
 import { UsageFilter, createUsageConfig } from "./UsageFilter";
 import { ReloadIcon } from "./Filters";
 import classNames from "classnames";
+import { DedicatedUserAccessButton } from "./DedicatedAccessModal";
 
 const AddUserIcon = chakra(UserPlusIcon, {
   baseStyle: {
@@ -927,6 +928,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
                 >
                   {isEditing && (
                     <>
+                      <DedicatedUserAccessButton username={editingUser.username} compact />
                       <Tooltip label={t("delete")} placement="top">
                         <IconButton
                           aria-label={t("delete")}

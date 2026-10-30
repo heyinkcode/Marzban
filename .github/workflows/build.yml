@@ -35,6 +35,7 @@ jobs:
           chmod +x "$RUNNER_TEMP/relay-xray/xray"
           MR_SHAW_RELAY_TEST_XRAY="$RUNNER_TEMP/relay-xray/xray" python -m unittest discover -s tests -p 'test_node_relay_process.py' -v
           MR_SHAW_RELAY_TEST_XRAY="$RUNNER_TEMP/relay-xray/xray" python -m unittest discover -s tests -p 'test_main_egress*.py' -v
+          MR_SHAW_RELAY_TEST_XRAY="$RUNNER_TEMP/relay-xray/xray" python -m unittest discover -s tests -p 'test_dedicated_access_runtime.py' -v
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -70,6 +71,7 @@ jobs:
       - name: Verify container migration and fail-closed startup
         run: |
           docker run --rm --network none --entrypoint python marzban-release-test:local tools/verify_usage_continuity_release.py --xray /usr/local/bin/xray
+          docker run --rm --network none --entrypoint python marzban-release-test:local tools/verify_dedicated_access_release.py --xray /usr/local/bin/xray
           set +e
           timeout 30s docker run --name marzban-failed-migration --network none -e SQLALCHEMY_DATABASE_URL=sqlite:////missing-directory/ledger.db marzban-release-test:local > "$RUNNER_TEMP/migration-failure.log" 2>&1
           result=$?

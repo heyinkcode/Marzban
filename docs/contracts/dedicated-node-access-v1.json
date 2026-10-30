@@ -1,0 +1,40 @@
+{
+  "capability": "dedicated-node-access-v1",
+  "status": "local-development-not-released",
+  "authentication": "administrator Bearer token, website backend only",
+  "scope": "user ownership AND explicit Node allocation delegation; sudo bypasses delegation",
+  "request": {
+    "required": ["operation_id"],
+    "optional": ["external_reference"],
+    "additionalProperties": false,
+    "operation_id": "canonical lowercase UUID; persist before dispatch",
+    "external_reference": "nullable string, otherwise 1-128 characters; not payment evidence"
+  },
+  "supported_protocols": ["trojan", "vless", "vmess"],
+  "endpoints": [
+    ["GET", "/api/dedicated-nodes"],
+    ["GET", "/api/user/{username}/dedicated-nodes"],
+    ["GET", "/api/user/{username}/dedicated-nodes/{node_id}"],
+    ["PUT", "/api/user/{username}/dedicated-nodes/{node_id}"],
+    ["DELETE", "/api/user/{username}/dedicated-nodes/{node_id}"],
+    ["GET", "/api/dedicated-node-operations/{operation_id}"]
+  ],
+  "sudo_endpoints": [
+    ["GET", "/api/node/{node_id}/access"],
+    ["PUT", "/api/node/{node_id}/access"],
+    ["GET", "/api/admin/{username}/dedicated-nodes"],
+    ["PUT", "/api/admin/{username}/dedicated-nodes/{node_id}"],
+    ["DELETE", "/api/admin/{username}/dedicated-nodes/{node_id}"]
+  ],
+  "states": ["synced", "pending", "error"],
+  "http_200": "current policy application and Node core readiness confirmed",
+  "http_202": "accepted but pending or unconfirmed; not effective",
+  "get_side_effects": "none; does not restart or grant",
+  "write_side_effects": "permission/audit and target Node reconciliation only; may restart target core",
+  "idempotency": "same operation and payload never reapplies a superseded grant; changed payload returns 409",
+  "mutates_payments_or_usage_or_expiry": false,
+  "deployment": "one active panel worker/controller per independently owned Node core",
+  "migration": "c345de67fa89 -> d456ef78ab90",
+  "paired_node_wire_protocol_changes": false,
+  "documentation": "../DEDICATED_NODE_ACCESS.md"
+}

@@ -48,6 +48,13 @@ const compileHostSchema = translate => vm.runInNewContext(
 const sampleHost = { remark: "Node 01", address: "node.example.com", port: "8443", path: null, sni: null,
   host: null, fragment_setting: null, noise_setting: null, security: "inbound_default", alpn: "", fingerprint: "" };
 
+test("host form preserves dedicated target ownership without altering legacy hosts", () => {
+  const schema = compileHostSchema(instance.getFixedT("en"));
+  assert.equal(schema.parse({ INBOUND: [{ ...sampleHost, node_id: 17 }] }).INBOUND[0].node_id, 17);
+  assert.equal(schema.parse({ INBOUND: [sampleHost] }).INBOUND[0].node_id, undefined);
+  assert.equal(schema.safeParse({ INBOUND: [{ ...sampleHost, node_id: -1 }] }).success, false);
+});
+
 for (const language of languages) {
   const t = instance.getFixedT(language);
   const [daysAgo, hoursAgo, never, online, days] = samples[language];

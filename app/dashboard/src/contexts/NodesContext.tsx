@@ -17,6 +17,7 @@ export const NodeSchema = z.object({
     .or(z.string().transform((v) => parseFloat(v))),
   xray_version: z.string().nullable().optional(),
   id: z.number().nullable().optional(),
+  access_mode: z.enum(["public", "restricted"]).optional(),
   status: z
     .enum(["connected", "connecting", "error", "disabled"])
     .nullable()
@@ -35,6 +36,7 @@ export const getNodeDefaultValues = (): NodeType => ({
   api_port: 62051,
   xray_version: "",
   usage_coefficient: 1,
+  access_mode: "public",
 });
 
 export const FetchNodesQueryKey = "fetch-nodes-query-key";

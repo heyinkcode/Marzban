@@ -6,6 +6,8 @@
 
 ## 认证与边界
 
+开发中 `dedicated-node-access-v1`：管理员 GET `/api/dedicated-nodes`、GET用户授权、PUT/DELETE `/api/user/{username}/dedicated-nodes/{node_id}`、GET操作回执；普通管理员同时检查用户归属和Node委派。sudo-only模式/委派接口及完整字段、202待生效、幂等和网站示例见[专线合同](docs/DEDICATED_NODE_ACCESS.md)。尚未发布，不能当作现网已有接口。
+
 sudo-only `/api/usage-continuity/v1` 的 preview、repairs POST 与 receipt GET，见[严格合同](docs/contracts/usage-continuity-v1.json)及[账目说明](docs/USAGE_CONTINUITY.md)。不是通用充值/清零接口；先按[发布记录](docs/releases/usage-continuity-20261024.md)核对运行版本。
 
 下表节点管理接口均在 `/api` 下，要求原超级管理员 Bearer Token。令牌沿用 `POST /api/admin/token`；不得公开管理员凭据、Node 会话或代理密码。全部原版接口以代码和运行实例 OpenAPI 为准。
