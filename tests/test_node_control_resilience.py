@@ -201,7 +201,12 @@ class AccountBatchResilienceTests(unittest.TestCase):
         connected.assert_called_once()
         started.assert_called_once()
         expected = [(self.runtime.api, "main"), (good.api, "node")]
-        self.assertTrue(all(call.kwargs["targets"] == expected for call in self.sync.call_args_list))
+        from app.xray.node_access import GuardedNodeAPI
+        self.assertTrue(all([(api.api if isinstance(api, GuardedNodeAPI) else api, scope)
+                             for api, scope in call.kwargs["targets"]] == expected
+                            for call in self.sync.call_args_list))
+        self.assertTrue(all(isinstance(call.kwargs["targets"][1][0], GuardedNodeAPI)
+                            for call in self.sync.call_args_list))
 
     def test_batch_continues_after_one_user_error(self):
         self.crud.get_users.return_value = [Mock(id=1), Mock(id=2)]

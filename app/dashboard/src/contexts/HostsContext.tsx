@@ -4,6 +4,7 @@ import { create } from "zustand";
 type HostsSchema = Record<
   string,
   {
+    node_id?: number | null;
     remark: string;
     address: string;
     port: number | null;

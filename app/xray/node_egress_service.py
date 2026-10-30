@@ -50,7 +50,9 @@ def apply(db, dbnode, profile):
         candidate = prepare_egress(db, dbnode, profile) if profile is not None else None
         previous = read_egress(db, dbnode)
         node, health = paired_node(dbnode)
-        config = for_node(xray.config.include_db_users(), candidate, health)
+        from app.xray.node_access import prepare_config, acknowledge
+        base, mode, revision = prepare_config(xray.config.include_db_users(), dbnode.id, dbnode)
+        config = for_node(base, candidate, health)
         try:
             node.restart(config)
         except Exception as exc:
@@ -73,13 +75,15 @@ def apply(db, dbnode, profile):
         except Exception:
             db.rollback()
             try:
-                node.restart(for_node(xray.config.include_db_users(), previous, health))
+                base, _, _ = prepare_config(xray.config.include_db_users(), dbnode.id, dbnode)
+                node.restart(for_node(base, previous, health))
             except Exception:
                 raise EgressError("SAVE_FAILED_ROLLBACK_UNCONFIRMED", 503) from None
             raise EgressError("SAVE_FAILED_ROLLED_BACK", 503) from None
         # Reconciliation is best effort after an acknowledged, persisted
         # change. Its failure must not masquerade as a failed database save.
         try:
+            acknowledge(node, mode, revision)
             xray.operations.sync_node_device_policies(dbnode.id)
         except Exception:
             from app import logger

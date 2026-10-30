@@ -4,6 +4,7 @@
 
 | 功能 | 使用或维护说明 | 历史证据 |
 | --- | --- | --- |
+| 专线Node通用授权（开发中） | [接口合同](../DEDICATED_NODE_ACCESS.md) | [本地验证](dedicated-node-access-20261030.md) |
 | 活动统计与策略 | [说明](../NODE_ACTIVITY_AND_POLICY.md) | [发布历史](activity-policy.md) |
 | 浏览器翻译兼容 | [说明](../BROWSER_TRANSLATION.md) | [发布历史](browser-translation.md) |
 | 控制连接恢复 | [说明](../NODE_CONTROL_RESILIENCE.md) | [发布历史](control-resilience.md) |

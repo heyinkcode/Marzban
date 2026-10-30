@@ -53,6 +53,7 @@ class Admin(Base):
     discord_webhook = Column(String(1024), nullable=True, default=None)
     users_usage = Column(BigInteger, nullable=False, default=0)
     usage_logs = relationship("AdminUsageLogs", back_populates="admin")
+    dedicated_nodes = relationship("DedicatedNodeAdmin", back_populates="admin", cascade="all, delete-orphan")
 
 
 class AdminUsageLogs(Base):
@@ -97,6 +98,7 @@ class User(Base):
     devices = relationship(
         "UserDevice", back_populates="user", cascade="all, delete-orphan"
     )
+    dedicated_nodes = relationship("DedicatedNodeGrant", back_populates="user", cascade="all, delete-orphan")
     usage_logs = relationship("UserUsageResetLogs", back_populates="user")  # maybe rename it to reset_usage_logs?
     usage_recoveries = relationship(
         "UserUsageRecovery", viewonly=True,
@@ -304,6 +306,7 @@ class ProxyHost(Base):
     id = Column(Integer, primary_key=True)
     remark = Column(String(256), unique=False, nullable=False)
     address = Column(String(256), unique=False, nullable=False)
+    node_id = Column(Integer, ForeignKey("nodes.id", ondelete="SET NULL"), nullable=True, index=True)
     port = Column(Integer, nullable=True)
     path = Column(String(256), unique=False, nullable=True)
     sni = Column(String(1000), unique=False, nullable=True)
@@ -384,8 +387,48 @@ class Node(Base):
     user_usages = relationship("NodeUserUsage", back_populates="node", cascade="all, delete-orphan")
     usages = relationship("NodeUsage", back_populates="node", cascade="all, delete-orphan")
     usage_coefficient = Column(Float, nullable=False, server_default=text("1.0"), default=1)
+    access_mode = Column(String(16), nullable=False, default="public", server_default="public")
+    access_revision = Column(Integer, nullable=False, default=0, server_default="0")
+    dedicated_grants = relationship("DedicatedNodeGrant", back_populates="node", cascade="all, delete-orphan")
+    dedicated_admins = relationship("DedicatedNodeAdmin", back_populates="node", cascade="all, delete-orphan")
     egress = relationship("NodeEgress", back_populates="node", uselist=False, cascade="all, delete-orphan")
     relay = relationship("NodeRelay", back_populates="node", foreign_keys="NodeRelay.node_id", uselist=False, cascade="all, delete-orphan")
+
+
+class DedicatedNodeGrant(Base):
+    __tablename__ = "dedicated_node_grants"
+    node_id = Column(Integer, ForeignKey("nodes.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    username = Column(String(34), nullable=False)
+    user_created_at = Column(DateTime, nullable=False)
+    granted_by = Column(String(34), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    node = relationship("Node", back_populates="dedicated_grants")
+    user = relationship("User", back_populates="dedicated_nodes")
+
+
+class DedicatedNodeAdmin(Base):
+    __tablename__ = "dedicated_node_admins"
+    node_id = Column(Integer, ForeignKey("nodes.id", ondelete="CASCADE"), primary_key=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), primary_key=True)
+    node = relationship("Node", back_populates="dedicated_admins")
+    admin = relationship("Admin", back_populates="dedicated_nodes")
+
+
+class DedicatedNodeOperation(Base):
+    """Immutable acceptance audit; deliberately survives account/Node deletion."""
+    __tablename__ = "dedicated_node_operations"
+    operation_id = Column(String(36), primary_key=True)
+    payload_sha256 = Column(String(64), nullable=False)
+    node_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    username = Column(String(34), nullable=False)
+    user_created_at = Column(DateTime, nullable=False)
+    granted = Column(Boolean, nullable=False)
+    actor = Column(String(34), nullable=False)
+    external_reference = Column(String(128), nullable=True)
+    revision = Column(Integer, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
 class NodeRelay(Base):

@@ -74,15 +74,15 @@ def verify(xray=None):
                        "VALUES (1, 6000, '2026-02-01 00:00:00')")
             db.commit()
             before = snapshot(db)
-            migrate("upgrade", "head")
+            migrate("upgrade", NEW_HEAD)
             assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NEW_HEAD
             assert before == snapshot(db), "Migration changed existing data"
             assert db.execute("SELECT count(*) FROM user_usage_recoveries").fetchone()[0] == 0
-            migrate("upgrade", "head")
+            migrate("upgrade", NEW_HEAD)
             assert before == snapshot(db), "Repeated upgrade changed data"
             migrate("downgrade", OLD_HEAD)
             assert before == snapshot(db), "Empty-audit downgrade changed data"
-            migrate("upgrade", "head")
+            migrate("upgrade", NEW_HEAD)
             db.execute("INSERT INTO user_usage_recoveries VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                        ("11111111-1111-4111-8111-111111111111", 1, "synthetic_user",
                         "2026-01-01 00:00:00", 1, 6000, "a" * 64, json.dumps({"synthetic": True})))

@@ -352,8 +352,10 @@ class UserDeviceLimitTests(unittest.TestCase):
             operations.sync_user_device_accounts(user)
             remove.assert_not_called()
             self.assertEqual(alter.call_count, 4)
+            from app.xray.node_access import GuardedNodeAPI
             for api in (main_api, node_api):
-                accounts = [call.args[2] for call in alter.call_args_list if call.args[0] is api]
+                accounts = [call.args[2] for call in alter.call_args_list
+                            if (call.args[0].api if isinstance(call.args[0], GuardedNodeAPI) else call.args[0]) is api]
                 self.assertEqual({str(account.id) for account in accounts}, {shared, private})
                 self.assertEqual({account.email for account in accounts}, {
                     f"{user.id}.{user.username}",

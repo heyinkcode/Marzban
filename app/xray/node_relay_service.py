@@ -219,7 +219,8 @@ def options(db):
     first = db.query(NodeRelay).filter(NodeRelay.source == "main").order_by(NodeRelay.node_id).first()
     return {"source": "main", "sources": ["main", "node"],
             "source_nodes": [{"id": node.id, "name": node.name, "address": node.address,
-                              "connected": node.status == NodeStatus.connected} for node in db.query(Node).all()],
+                              "connected": node.status == NodeStatus.connected} for node in db.query(Node).all()
+                             if getattr(node, "access_mode", "public") != "restricted"],
             "required_node_capability": CAPABILITY,
             "default_entry_address": first.entry_address if first else "",
             "inbounds": [{"tag": tag, "port": item["port"], "network": item["network"],
@@ -286,6 +287,8 @@ def save(db, node, settings):
             if new.source == "node":
                 if new.source_node is None or new.source_node.status != NodeStatus.connected:
                     raise ValueError("Source Node must exist and be connected")
+                if getattr(new.source_node, "access_mode", "public") == "restricted":
+                    raise ValueError("Dedicated Nodes cannot act as shared relay sources")
                 _, state = _source_state(new.source_node_id)
                 port = choose_port(settings.listen_port if settings.allocation == "manual" else None,
                                    row.listen_port if row else None, reserved, allocated, state.get("occupied_ports", []))
