@@ -1,4 +1,4 @@
-# 专线 Node 通用授权 — 本地验证记录
+# 专线 Node 通用授权 — 发布与验证记录
 
 日期：2026-10-30。隔离目录 `.cache/dedicated-node-access-20261030`，分支 `feature/dedicated-node-access-20261030`，基线为远端 master `db9b70f`。原有脏开发源、历史副本与生产服务器未修改。
 
@@ -9,7 +9,7 @@
 | 主控API与本地核心验证 | 已实现；本地回归结果见下文，不等于跨服务器验收 |
 | 管理界面 | 用户已确认原组件方案及按用户授权规则，并要求复测后发布；实际组件浏览器检查通过 |
 | Node / scripts | 本轮无运行时变化 |
-| 线上仓库 / CI / 镜像 | 未推送、未运行线上CI、未发布镜像 |
+| 线上仓库 / CI / 镜像 | PR #30已合并；PR与正式CI通过；amd64/arm64镜像及匿名OCI读回核验通过，证据见下文 |
 | 生产与网站付款 | 未部署、未做真实付款/客户授权操作 |
 
 ## 说明文档与交付位置
@@ -68,7 +68,7 @@
 - 浏览器先发现并修复操作后焦点丢失、手机重复入口和320px操作行溢出；保留失败日志，不将失败轮算通过。预览启动的模块加载/模拟fetch时序，以及测试器定位Chakra隐藏checkbox的问题仅修预览工具。原节点文件hash检查改为排除明确新增的三个位置后仍匹配原文件，而不是直接替换预期hash。
 - 本地证据：项目 `.cache/dedicated-ui-backend-round1.log`、`dedicated-ui-frontend-round6.log` / `round7.log`、`dedicated-ui-types-final.log`、`dedicated-ui-build-final.log`、`dedicated-ui-browser-round16.log`。实际组件预览及截图位于项目 `ui-preview/dedicated-access-20261030/`，不作为公开安装文件或真实服务连接入口上传。
 
-## 尚未完成的发布闸门
+## UI阶段发布闸门快照（历史，见后续线上记录）
 
 收尾复核：浏览器round16、round17各10组场景通过，无pageerror；日志中的503为故意模拟读取失败。NodesModal混合CRLF导致diff空白检查失败后，仅规范换行，原区域hash与专项12/12再次通过；最终diff检查通过。当前Git列出的75份Markdown、425处相对文件目标均存在，146对代码围栏成对；本地结构检查不代表远程链接或所有页面渲染验收。README首页仍无变更，新UI/说明未命中所列已知生产IP/Token/私钥模式。
 
@@ -85,3 +85,30 @@ Linux CI/容器、PostgreSQL/MySQL实际迁移和真实跨服务器REST/RPyC未�
 三仓库影响：本轮仅主控代码/迁移/UI/文档变化；Node与scripts无运行时变化。复核当时远端Node master为4a923f4cbed260296444e4e2a78ffa9fc1774996，scripts master为4202e34b1992aff8dfebad3efd747753dfe6f14a；它们不是本轮新构建。普通/专线在主控创建Node时选择，服务器使用同一套配对Node安装程序，不能先公共下发后才声称专线已限制。
 
 权限设计和当前协议/部署限制见[接口合同](../DEDICATED_NODE_ACCESS.md)。此记录不是已上线或全量生产验收的证明。
+
+## 线上仓库与Linux验证
+
+- 功能源提交：[`2c163f0ebfb876dca481f26a217c7c4d81703660`](https://github.com/heyinkcode/Marzban/commit/2c163f0ebfb876dca481f26a217c7c4d81703660)；[PR #30](https://github.com/heyinkcode/Marzban/pull/30)，2026-10-30 07:40:13 UTC合并为`8b5a66643409d3969b0b9205b281ec8a036a7d2c`。54项线上文件与白名单一致，源/合并树同为`6417b84d81cc0924f925bc517cc04c0edef9923b`。
+- PR分支检查：[push](https://github.com/heyinkcode/Marzban/actions/runs/41020677931)、[PR](https://github.com/heyinkcode/Marzban/actions/runs/41020693824)均成功；[完整PR构建检查](https://github.com/heyinkcode/Marzban/actions/runs/41020693641)成功后才合并。
+- 完整PR流程：基础后端发现312项、通过301项、暂跳过11项需固定核心的测试；下载实际Xray26.3.27后，透明中转2/2、本机出口组34/34、专线真实连接4/4通过，覆盖上述11项。不得把最初跳过项记为已执行，也不将重复组累计为独立测试数。前端73/73、类型/生产构建通过，既有大chunk警告保留。
+- 隔离amd64容器使用合成SQLite数据：旧用量迁移及专线迁移均完成完整历史链，`complete_historical_chain=true`；保留旧表字段/值、重复升级、允许的降级再升级及有审计时拒绝降级通过。故意指定不存在的数据库目录时退出码1，未继续进入应用启动；日志中的该数据库错误是预期负向测试。
+- 正式构建：[Actions 41021503560](https://github.com/heyinkcode/Marzban/actions/runs/41021503560)，源为上述合并提交，2026-10-30 07:57:46 UTC成功。正式流程再次通过基础312项（11项在后续真实核心组补跑）、2/2中转、34/34本机出口组、4/4专线及前端73/73；隔离容器两项完整历史迁移与失败阻止启动检查通过。Docker构建内核版本校验保持26.3.27。
+
+## 正式镜像证据
+
+2026-10-30 07:58:18 UTC匿名读回 `ghcr.io/heyinkcode/marzban:latest`，索引及每个架构manifest/config响应体SHA-256校验通过；两个架构revision均为`8b5a66643409d3969b0b9205b281ec8a036a7d2c`，不只检查latest标签。索引：
+
+```text
+sha256:e343b7f4cfd4227ab66460c494ea0762d3da24858e3525953105e559816a000a
+```
+
+| 架构 | Manifest | Config |
+| --- | --- | --- |
+| linux/amd64 | `sha256:a4084b7bf17de9011fad78c37d40564f80ff7a0110cb367e1682b73c0bdedd08` | `sha256:67651c66ebbc61c2e0c6aa52e7b142eba9e84b4bcd51f73c0caa75f35d67eb39` |
+| linux/arm64 | `sha256:51f5bb9bc208ed5609c0d4ca51a8c7dc882fdef10b8581821114f2fd0b1488c7` | `sha256:567a80709ca9fbd69d8ca1c7380589ff9a255bd2ee0fac487fa6f907c555a57c` |
+
+发布后只回写Markdown说明和新增一张合成数据的实际新建表单截图：明确订阅主机勾选及旧域名别名绑定要求；不改变运行时，也不为文档重建镜像。最初功能PR的54项白名单和两张截图记录仍保留，不与后续文档变更混算。现行功能/API文档状态更新，README及翻译首页保持不变。
+
+### 剩余验收与部署范围
+
+本轮没有连接生产服务器、开通真实用户或付款。PostgreSQL/MySQL实际迁移、多活worker、跨服务器REST/RPyC及真实客户端验收未完成；不得把本地echo/控制适配器、容器启动或镜像发布称作生产全链路验收。实际使用前按专页检查单活主控、配对Node、Host绑定及目标协议，在维护窗口验证开通、撤销、订阅刷新和其他公共节点不受影响。升级仅主控，Node/scripts无本轮运行时变化；保留数据库备份及所有授权审计，有专线/审计时禁止暴露式回退。
