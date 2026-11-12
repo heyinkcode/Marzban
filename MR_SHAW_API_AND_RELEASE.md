@@ -6,7 +6,7 @@
 
 ## 认证与边界
 
-本地新增 sudo-only `/api/usage-continuity/v2` 的 GET preview、POST repairs、GET receipt；固定reason `restore_first_paid_period_reset`、付款期声明和单历史限制见[v2说明](docs/USAGE_CONTINUITY_V2.md)。未发布版本不得在生产直接调用；v1合同不变。
+新增 sudo-only `/api/usage-continuity/v2` 的 GET preview、POST repairs、GET receipt；固定reason `restore_first_paid_period_reset`、付款期声明和单历史限制见[v2说明](docs/USAGE_CONTINUITY_V2.md)。主控镜像已发布；服务器升级后先GET核对capability，实际恢复需独立证据和授权；v1合同不变。
 
 既有用户 GET/PUT 和显式 reset 的外部控制边界见[到期时间与重置控制](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md)：准确 `expire`、`no_reset`、交接核对及禁止未知结果盲重置。无新增字段或 API。
 
