@@ -1,5 +1,11 @@
 # Marzban 更新摘要
 
+## 2026-11-12
+
+- 本地新增独立 v2 首次付款期单条提前重置恢复接口，显式证据校验、原子审计与额度拒绝；v1合同不变，尚未发布。[说明](docs/USAGE_CONTINUITY_V2.md)
+
+- 补充外部订阅到期设置、no_reset 控制权交接及并发回归；不改变独立面板用户的周期规则，无运行时变化。[调用说明](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md)
+
 ## 2026-10-30
 
 - 新增通用专线Node授权API、管理员委派、幂等审计、Node凭证与订阅双层过滤；网站自行管理价格/支付，用户流量与套餐不变。[合同与边界](docs/DEDICATED_NODE_ACCESS.md)

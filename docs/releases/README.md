@@ -4,6 +4,8 @@
 
 | 功能 | 使用或维护说明 | 历史证据 |
 | --- | --- | --- |
+| 首次付款期恢复 v2（本地开发） | [独立合同](../USAGE_CONTINUITY_V2.md) | [验证记录](usage-continuity-v2-20261112.md) |
+| 外部订阅控制（本地验证，未发布） | [API 控制边界](../EXTERNAL_SUBSCRIPTION_CONTROL.md) | [验证记录](external-reset-control-20261112.md) |
 | 专线Node通用授权（镜像已发布，服务器待验收） | [接口合同](../DEDICATED_NODE_ACCESS.md) | [发布与验证](dedicated-node-access-20261030.md) |
 | 活动统计与策略 | [说明](../NODE_ACTIVITY_AND_POLICY.md) | [发布历史](activity-policy.md) |
 | 浏览器翻译兼容 | [说明](../BROWSER_TRANSLATION.md) | [发布历史](browser-translation.md) |

@@ -6,6 +6,10 @@
 
 ## 认证与边界
 
+本地新增 sudo-only `/api/usage-continuity/v2` 的 GET preview、POST repairs、GET receipt；固定reason `restore_first_paid_period_reset`、付款期声明和单历史限制见[v2说明](docs/USAGE_CONTINUITY_V2.md)。未发布版本不得在生产直接调用；v1合同不变。
+
+既有用户 GET/PUT 和显式 reset 的外部控制边界见[到期时间与重置控制](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md)：准确 `expire`、`no_reset`、交接核对及禁止未知结果盲重置。无新增字段或 API。
+
 `dedicated-node-access-v1`：管理员 GET `/api/dedicated-nodes`、GET用户授权、PUT/DELETE `/api/user/{username}/dedicated-nodes/{node_id}`、GET操作回执；普通管理员同时检查用户归属和Node委派。sudo-only模式/委派接口及完整字段、202待生效、幂等和网站示例见[专线合同](docs/DEDICATED_NODE_ACCESS.md)。功能镜像已发布；部署后先检查能力标识，旧版本没有这些接口，服务器验收范围见对应发布记录。
 
 sudo-only `/api/usage-continuity/v1` 的 preview、repairs POST 与 receipt GET，见[严格合同](docs/contracts/usage-continuity-v1.json)及[账目说明](docs/USAGE_CONTINUITY.md)。不是通用充值/清零接口；先按[发布记录](docs/releases/usage-continuity-20261024.md)核对运行版本。

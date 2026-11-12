@@ -6,6 +6,8 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 
 ## 功能与使用
 
+- [外部系统设置到期时间与流量重置控制权](EXTERNAL_SUBSCRIPTION_CONTROL.md)
+
 - [扩展功能概览](../FORK_FEATURES.md)
 - [专线Node授权与通用网站接口](DEDICATED_NODE_ACCESS.md)
 - [节点 HTTP/SOCKS5 出口、DNS 和 UDP 模式](NODE_EGRESS_UDP.md)
@@ -22,6 +24,7 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 ## 更新、接口与维护
 
 - [用量连续性修复](USAGE_CONTINUITY.md)、[部署与回退闸门](USAGE_CONTINUITY_DEPLOYMENT.md)
+- [首次付款期内单条重置恢复 v2（本地开发）](USAGE_CONTINUITY_V2.md)
 - [更新记录](../CHANGELOG.md)
 - [接口与兼容性](../MR_SHAW_API_AND_RELEASE.md)
 - [配置与环境变量](CONFIGURATION.md)
