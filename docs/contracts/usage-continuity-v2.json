@@ -1,6 +1,6 @@
 {
   "contract_version": "usage-continuity-repair-v2",
-  "status": "local implementation; not yet published or deployed",
+  "status": "controller image published and verified; production upgrade and account recovery require separate verification",
   "authentication": "Bearer sudo administrator on every endpoint; no-store responses",
   "database_support": "SQLite only; unsupported engines fail closed",
   "endpoints": {

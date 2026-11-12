@@ -1,6 +1,6 @@
 # 首次付款期内单条提前重置恢复（v2）
 
-状态：本地实现与测试，未发布/部署。此接口只修复错误减少的已用计数，不充值、不清零、不延长时间。原 v1 合同不变；无新 UI，Node/scripts 无变化。
+状态：主控镜像已发布并核验，生产服务器升级和客户恢复待单独验收。此接口只修复错误减少的已用计数，不充值、不清零、不延长时间。原 v1 合同不变；无新 UI，Node/scripts 无变化。
 
 ## 为什么独立版本
 
@@ -39,6 +39,19 @@ v2 GET receipt 拒绝将 v1 回执误标成 v2。原 v1 的读取仍会返回回
 ## 发布与回退
 
 本轮需要主控镜像发布并由用户升级后才可使用；Node 和部署脚本不需要修改。已有 Fork 仍按备份后 update 流程，不能重装/删卷。不得仅因安装 v2 就执行客户恢复。
+
+### 已有标准 Fork 主控的升级
+
+先确认本页[发布记录](releases/usage-continuity-v2-20261112.md)已列出成功的正式构建和镜像摘要。以下仅适用于已由配套脚本管理、使用 `ghcr.io/heyinkcode/marzban:latest` 的标准主控；固定 digest/tag、自定义 Compose 或容器名先单独核对，不能直接套用。
+
+1. 使用不依赖本机 Marzban 代理的 SSH 或带外控制台，安排维护窗口。升级会暂时停止主控，不能让 SSH 本身走该主控代理。
+2. 保存当前镜像 ID/revision、Compose、挂载和数据库版本；确认停写备份覆盖数据库（含 WAL 一致性）、`.env`、配置与证书，没有其他共享数据库写入者。
+3. 执行既有 `sudo marzban update`。配套脚本先备份再升级，保存输出的备份路径；任何备份、拉取或启动错误均停止，不重装、不删卷、不盲目重试。成功后执行 `sudo marzban status`。
+4. 对已核实名称的容器，用 `docker inspect` 核对 `.Image` 和 `org.opencontainers.image.revision`，与本次发布记录对应架构的 config/revision 比较，不把多架构 index 当作容器 image ID。
+5. 只读盘点命令为 `docker exec -e PYTHONPATH=/code -w /code <已核实主控容器名> python -B tools/usage_continuity_db_inventory.py`。当前完整迁移链唯一 head 为 `d456ef78ab90`；本轮 v2 没有新增迁移，旧部署升级仍须通过此前既有迁移。
+6. 使用现有 sudo Bearer 身份 GET v2 preview，核对 `capability=usage-continuity-repair-v2`，并验收面板、订阅、节点和原用量。该 GET 不恢复账号；`eligible=false` 是资格拒绝，不代表镜像未安装。
+
+完成部署核验后，外部系统仍须完成付款证据核验、写入协调与原请求持久化。恢复与 no_reset 交接按上文分别执行，不能把容器 Up 或一次 preview 当作恢复成功。
 
 恢复后不能回退到不认识 recovery ledger 的旧运行时；保留审计和数据库，沿用[部署与回退闸门](USAGE_CONTINUITY_DEPLOYMENT.md)。回退软件不撤销恢复，更不能删回执或还原旧数据库覆盖新用量。调用方继续需要支持已有 v2 回执。
 

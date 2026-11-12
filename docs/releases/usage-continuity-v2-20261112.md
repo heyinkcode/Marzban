@@ -1,6 +1,6 @@
 # v2 首次付款期恢复验证（2026-11-12）
 
-状态：本地开发、未上传、未发布镜像、未部署、未写客户数据。网站部署与实际恢复操作不在本轮本地测试范围。
+状态：代码已合并，主控双架构镜像已发布并核验；尚未代用户升级生产服务器或写客户数据。外部网站部署与实际恢复操作单独验收。
 
 主控增加独立 v2 路由/模型及窄条件，原子写入复用 v1 的 BEGIN IMMEDIATE/CAS/审计。v1 两条历史合同不放宽。无新增迁移，Node/scripts/Xray 版本/端口/证书/首页/UI 不变。
 
@@ -14,6 +14,29 @@
 
 覆盖包括真实隔离 SQL 账本/写锁/CAS、并发增量与 UUID 竞态、ASGI 权限、失败回滚、额度临界拒绝和后续限额；网站支付及生产服务器不在本地测试覆盖范围。
 
-发布前置：提交/PR 与 Linux CI、新主控镜像构建及 OCI revision 核对、用户备份升级后只读探测 v2 capability，均尚未执行。需要新主控镜像，不需要更新 Node/scripts。网站还需独立核验首购付款与初始开通账本，持久化原请求后才能在明确授权下恢复；未发布接口不得发生产 POST 命令。
+发布前置中的提交、PR/Linux CI、镜像构建与 OCI 核对现已完成，证据如下。仍需用户备份升级后只读探测 v2 capability；不需要更新 Node/scripts。外部系统还需独立核验首购付款与初始开通账本，持久化原请求后才能在明确授权下恢复。
 
 隔离 SQLite WAL，签名和外部Xray报告使用测试替身；不能据此宣称生产修复、实际支付或远端Xray停用已验收。实际请求仍可能因新用量达到额度、过期、控制权变化或历史变化而拒绝。
+
+## 正式发布证据
+
+- 功能源 `ae67eaf1d5bce582b4b7a88bf2baf65607b169d9`；[PR #32](https://github.com/heyinkcode/Marzban/pull/32) 合并为 `8fcfd60616c951936aa795edc9817aff561177f2`。
+- [PR 分支检查](https://github.com/heyinkcode/Marzban/actions/runs/43218458379)、[PR 镜像验证](https://github.com/heyinkcode/Marzban/actions/runs/43218458502) 均成功后合并；[正式构建](https://github.com/heyinkcode/Marzban/actions/runs/43219778338) 成功。
+- PR 与正式构建的普通 Linux 后端均运行355项，无核心阶段11项跳过；随后固定真实 Xray v26.3.27 补跑中转2、本机出口34、专线运行时4项通过。前端73项、类型和生产构建通过。不要把普通阶段跳过项写成无跳过。
+- 无网络 amd64 镜像内验证完整历史迁移、合成用户数据、重复迁移与恢复审计的回退保护；既有专线迁移 head `d456ef78ab90` 验证通过。无效 DB 路径时默认启动非零退出且不启动应用。v2没有新增迁移。
+- 2026-11-12 12:53:51 UTC（北京时间20:53:51）匿名读取 GHCR，核对 index、amd64/arm64 manifest/config 原始字节 SHA-256、架构及 OCI revision。index 与正式构建输出一致；发布完成前的一次查询仍是旧 revision，未将其误报为新版本。
+
+镜像 `ghcr.io/heyinkcode/marzban:latest`，运行时 revision：`8fcfd60616c951936aa795edc9817aff561177f2`。不可变 index：
+
+```text
+sha256:fcabb5e8094d79ade50470c1e78cc41aaee9488de0fabf9250ed4a445ab47a54
+```
+
+| 架构 | manifest SHA-256 | config / 本地 image ID SHA-256 |
+| --- | --- | --- |
+| linux/amd64 | `695c9dbc68b6ed815f5cf7554b0e5bf81e36775dd93999a4c286e4e42de07537` | `6da6113c1b1ffe98cc5590f2dbfe8346a13660fa7fbafc1308ff04e85f66bd41` |
+| linux/arm64 | `cdea6c7a7a9849e316f720eca5d1c53fb4e2e1263b7e567fe437a6b4617c435e` | `cd9fbbad6f769914741058d7f71f7b7d927cb4a2cd19cb9203dfdc14139f54b0` |
+
+arm64已构建及制品核验，未在真实arm64服务器验收。原README、证书、端口、.env和用户数据不改。后续纯文档 `[skip ci]` 回写不重新构建镜像，运行时revision保持上值。
+
+已有标准 Fork 主控按[备份升级与只读验收](../USAGE_CONTINUITY_V2.md#已有标准-fork-主控的升级)执行，不重装/删卷。服务器更新、网站协调器验收、客户恢复及no_reset交接均未由本次仓库发布自动完成。
