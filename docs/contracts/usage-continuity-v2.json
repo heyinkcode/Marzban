@@ -1,0 +1,60 @@
+{
+  "contract_version": "usage-continuity-repair-v2",
+  "status": "local implementation; not yet published or deployed",
+  "authentication": "Bearer sudo administrator on every endpoint; no-store responses",
+  "database_support": "SQLite only; unsupported engines fail closed",
+  "endpoints": {
+    "preview": {"method":"GET","path":"/api/usage-continuity/v2/users/{username}/preview"},
+    "apply": {"method":"POST","path":"/api/usage-continuity/v2/users/{username}/repairs"},
+    "receipt": {"method":"GET","path":"/api/usage-continuity/v2/repairs/{operation_id}"}
+  },
+  "apply_body": {
+    "operation_id": "canonical-lowercase-UUID",
+    "reason": "restore_first_paid_period_reset",
+    "evidence_sha256": "64 lowercase hex digest of independently verified NEW payment and baseline evidence",
+    "expected": "entire v2 preview.expected object unchanged",
+    "paid_period_evidence": {
+      "starts_at": "YYYY-MM-DDTHH:MM:SS.ffffffZ",
+      "ends_at": "YYYY-MM-DDTHH:MM:SS.ffffffZ",
+      "last_observed_at": "YYYY-MM-DDTHH:MM:SS.ffffffZ",
+      "last_observed_used_traffic": "positive exact decimal byte string"
+    }
+  },
+  "preview": {
+    "capability": "usage-continuity-repair-v2",
+    "eligible_scope": "Only structural panel eligibility; external paid-period evidence is mandatory on POST",
+    "eligibility_scope": "panel_state_only",
+    "requires_paid_period_evidence": true,
+    "expected_schema": "Same fields as v1 ExpectedSnapshot; initial_reset is null, latest_reset is the sole positive stored reset",
+    "history": "complete currently stored rows; no synthetic zero row",
+    "reset_origin": "unrecorded"
+  },
+  "guards": [
+    "active, unexpired bounded expire, positive finite quota, month strategy, no next_plan or prior recovery",
+    "exactly one positive reset at least 30 days after account creation, not in future; next 30-day reset not yet due",
+    "starts_at within 5 minutes of created_at; tolerance alone is NOT evidence of a legitimate NEW purchase",
+    "30 days < ends_at - starts_at <= 32 days; floor(ends_at Unix seconds) equals current expire",
+    "starts_at <= last_observed_at <= reset_at < ends_at and current UTC < ends_at",
+    "0 < last_observed_used_traffic <= reset amount B",
+    "current+B strictly below original quota; at/over quota is refused without modifying status, quota or expiry",
+    "same identity/history snapshot, monotonic current since preview and expected lifetime=expected current+B"
+  ],
+  "semantics": [
+    "Website must verify one NEW paid period, initial zero baseline and absence of other authorized quota resets/credits/transfers. Hash is an audit reference, not payment verification by the panel.",
+    "Same BEGIN IMMEDIATE and CAS atomic CURRENT+B algorithm as v1. Preserve lifetime, original history, quota, expiry, credentials, status, device settings and node/admin/system totals. No Xray restart or call.",
+    "Receipt adds capability=v2, reason and exact paid_period_evidence; other fields match v1. No database migration; same append-only recovery ledger and unique target guard.",
+    "Fingerprint=SHA256 of UTF8 JSON {username:<path>,request:<validated request JSON>} with sorted keys, compact separators and ensure_ascii=true. Includes v2 reason and paid_period_evidence; UUID stays a string.",
+    "Identical original UUID/path/body replay returns original receipt even after expiry/deletion. Changed body/path or reason with same UUID returns 409. New UUID cannot recover the same account twice.",
+    "v2 receipt GET refuses a v1 receipt with operation_version_mismatch. v1 routes and two-row history rule remain unchanged; capability always identifies the receipt version.",
+    "Never blindly retry an uncertain write with a new UUID or updated expected. Query original receipt first; 404 does not rule out an in-flight commit. Keep external write gate closed until reconciled.",
+    "Recover first if eligible, then perform separately authorized no_reset handoff with counter/offset reconciliation. Premature no_reset changes identity and causes not_monthly. Do not alter expired/limited accounts to bypass refusal."
+  ],
+  "errors": {
+    "401": "unauthenticated",
+    "403": "not sudo",
+    "404": "unknown user or receipt",
+    "409": "v1 accounting codes plus paid_period_evidence_mismatch and operation_version_mismatch; ineligible includes blockers",
+    "422": "wrong reason, missing/extra fields, invalid timestamp/bytes/UUID/digest",
+    "503": "unsupported_database or database_busy; uncertain writes require original receipt reconciliation"
+  }
+}

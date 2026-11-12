@@ -55,7 +55,7 @@ def _user(db, username):
     return user
 
 
-def _preview(user, now):
+def _preview(user, now, *, first_paid_period=False):
     history = [{"id": log.id, "reset_at": utc(log.reset_at),
                 "used_traffic_at_reset": str(log.used_traffic_at_reset)}
                for log in sorted(user.usage_logs, key=lambda log: (log.reset_at, log.id))]
@@ -96,6 +96,10 @@ def _preview(user, now):
                 and timedelta(0) <= logs[0].reset_at - user.created_at <= timedelta(minutes=5)
                 and logs[1].reset_at >= logs[0].reset_at + timedelta(days=30)
                 and logs[1].reset_at <= now)
+    if first_paid_period:
+        shape_ok = (len(logs) == 1 and logs[0].used_traffic_at_reset > 0
+                    and logs[0].reset_at >= user.created_at + timedelta(days=30)
+                    and logs[0].reset_at <= now)
     amount = logs[-1].used_traffic_at_reset if shape_ok else 0
     if not shape_ok:
         blockers.append("unsupported_history")
@@ -105,9 +109,16 @@ def _preview(user, now):
         blockers.append("invalid_counter")
     if user.data_limit and user.used_traffic + amount >= user.data_limit:
         blockers.append("would_reach_quota")
-    return {"capability": CAPABILITY, "eligible": not blockers, "blockers": blockers,
+    result = {"capability": CAPABILITY, "eligible": not blockers, "blockers": blockers,
             "history_complete": True, "reset_origin": "unrecorded", "history": history,
             "restorable_bytes": str(amount), "expected": snapshot}
+    if first_paid_period:
+        from app.models.usage_continuity_v2 import CAPABILITY as V2_CAPABILITY
+        # A sole positive log is not a synthetic initial zero reset.
+        snapshot["initial_reset"] = None
+        result.update(capability=V2_CAPABILITY, requires_paid_period_evidence=True,
+                      eligibility_scope="panel_state_only")
+    return result
 
 
 def preview(db, username):
@@ -125,7 +136,44 @@ def receipt(db, operation_id):
     return dict(row.receipt)
 
 
-def apply(db, username, request, actor):
+def preview_first_paid_period(db, username):
+    try:
+        _transaction(db)
+        return _preview(_user(db, username), datetime.utcnow(), first_paid_period=True)
+    finally:
+        db.rollback()
+
+
+def receipt_first_paid_period(db, operation_id):
+    from app.models.usage_continuity_v2 import CAPABILITY as V2_CAPABILITY
+    result = receipt(db, operation_id)
+    if result.get("capability") != V2_CAPABILITY:
+        raise RecoveryError("operation_version_mismatch")
+    return result
+
+
+def _validate_paid_period(user, now, request):
+    from app.models.usage_continuity_v2 import parse_utc
+    proof = request.paid_period_evidence
+    start, end, observed = (parse_utc(value) for value in (
+        proof.starts_at, proof.ends_at, proof.last_observed_at))
+    created = user.created_at.replace(tzinfo=timezone.utc)
+    reset = user.usage_logs[0].reset_at.replace(tzinfo=timezone.utc)
+    amount = user.usage_logs[0].used_traffic_at_reset
+    if not (abs(start - created) <= timedelta(minutes=5)
+            and timedelta(days=30) < end - start <= timedelta(days=32)
+            and int(end.timestamp()) == user.expire
+            and start <= observed <= reset < end
+            and now.replace(tzinfo=timezone.utc) < end
+            and 0 < int(proof.last_observed_used_traffic) <= amount):
+        raise RecoveryError("paid_period_evidence_mismatch")
+
+
+def apply_first_paid_period(db, username, request, actor):
+    return apply(db, username, request, actor, first_paid_period=True)
+
+
+def apply(db, username, request, actor, *, first_paid_period=False):
     fingerprint = digest({"username": username, "request": request.model_dump(mode="json")})
     try:
         _transaction(db, write=True)
@@ -138,9 +186,11 @@ def apply(db, username, request, actor):
             return result
         user = _user(db, username)
         now = datetime.utcnow()
-        current = _preview(user, now)
+        current = _preview(user, now, first_paid_period=first_paid_period)
         if not current["eligible"]:
             raise RecoveryError("ineligible", blockers=current["blockers"])
+        if first_paid_period:
+            _validate_paid_period(user, now, request)
         expected = request.expected.model_dump(mode="json")
         actual = current["expected"]
         moving = {"observed_used_traffic", "observed_lifetime_used_traffic"}
@@ -152,7 +202,7 @@ def apply(db, username, request, actor):
         if (int(expected["observed_used_traffic"]) > before
                 or int(expected["observed_lifetime_used_traffic"]) != int(expected["observed_used_traffic"]) + amount):
             raise RecoveryError("observed_counter_changed")
-        result = {"capability": CAPABILITY, "status": "applied", "operation_id": str(request.operation_id),
+        result = {"capability": current["capability"], "status": "applied", "operation_id": str(request.operation_id),
                   "payload_sha256": fingerprint, "evidence_sha256": request.evidence_sha256,
                   "user_id": user.id, "username": username, "created_at": utc(user.created_at),
                   "reset_id": actual["latest_reset"]["id"], "reset_at": actual["latest_reset"]["reset_at"],
@@ -161,6 +211,9 @@ def apply(db, username, request, actor):
                   "lifetime_used_traffic_after": str(lifetime), "data_limit": str(user.data_limit),
                   "expire": user.expire, "reset_strategy": enum_value(user.data_limit_reset_strategy),
                   "applied_at": utc(now), "actor": actor}
+        if first_paid_period:
+            result.update(reason=request.reason,
+                          paid_period_evidence=request.paid_period_evidence.model_dump(mode="json"))
         updated = db.execute(update(User).where(User.id == user.id, User.used_traffic == before).values(
             used_traffic=User.used_traffic + amount).execution_options(synchronize_session=False))
         if updated.rowcount != 1:

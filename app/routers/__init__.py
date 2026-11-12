@@ -8,6 +8,7 @@ from . import (
     user_template, 
     user,
     usage_continuity,
+    usage_continuity_v2,
     dedicated_access,
     home,
 )
@@ -23,6 +24,7 @@ routers = [
     user_template.router,
     user.router,
     usage_continuity.router,
+    usage_continuity_v2.router,
     dedicated_access.router,
     home.router,
 ]

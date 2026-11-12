@@ -6,6 +6,8 @@
 
 | 功能 | 用途与边界 | 使用说明 |
 | --- | --- | --- |
+| 外部订阅控制 | 既有 API 设置准确到期时间，no_reset 关闭原生周期；受控交接且不修改已用流量 | [接口与并发边界](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md) |
+| 首次付款期恢复 v2（本地开发） | sudo独立证据恢复一条首次正数重置，不增加额度；v1不变 | [窄合同](docs/USAGE_CONTINUITY_V2.md) |
 | 专线 Node 授权 | 原组件用户权限弹窗、独立节点模式设置；网站按管理员归属/委派开通，查询实际生效状态 | [面板入口与通用网站API](docs/DEDICATED_NODE_ACCESS.md) |
 | 用量连续性修复 | sudo 审核后的单次月重置恢复，原子加回当前量且不重复累计；SQLite 严格限制 | [账目与接口](docs/USAGE_CONTINUITY.md) |
 | 节点状态 | 分别显示控制连接、资源和活动采样；在线用户不等于设备或连接数 | [活动统计](docs/NODE_ACTIVITY_AND_POLICY.md)、[连接恢复](docs/NODE_CONTROL_RESILIENCE.md) |

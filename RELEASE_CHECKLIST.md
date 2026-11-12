@@ -16,6 +16,10 @@
 
 ## 代码与测试
 
+- [ ] v2恢复验证：单历史与v1两历史互斥、显式付款证据/版本回执、并发增量与UUID竞态、接近quota拒绝、过期拒绝、未知结果只回查；部署后先GET探测，不自动执行客户修复。[v2合同](docs/USAGE_CONTINUITY_V2.md)
+
+- [ ] 外部控制交接核对 expire 精确保存、no_reset 不清零、锁内重查、交接前重置对账和 next_plan 前置检查；独立 month 用户不变，见[调用边界](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md)。
+
 - [ ] 专线授权变更核对：未授权真实连接拒绝、委派/归属、重复与丢ACK、设备/初始配置/重连/出口保存不复活凭证、各订阅格式、目标中转权限、迁移与禁止暴露式降级；见[专线合同](docs/DEDICATED_NODE_ACCESS.md)。
 
 - [ ] 用量连续性变更额外验证 Python/SQL lifetime、原子增量、未来重置/配额、重复/丢响应、身份复用、完整历史清空保护；有恢复记录禁止回退旧运行时。[专页](docs/USAGE_CONTINUITY_DEPLOYMENT.md)
