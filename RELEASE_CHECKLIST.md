@@ -1,5 +1,7 @@
 # Marzban 发布检查清单
 
+- [ ] 已续费额度延长期恢复：完成主控镜像与外部订单保护/回执恢复的部署验收；未知结果不得重发，未验收不执行客户数据修复。见[合同草案](docs/USAGE_CONTINUITY_PAID_EXTENSION_PREVIEW.md)。
+
 - [ ] 核对新用户名的原始脚本、匿名镜像拉取与双架构 revision；旧 Fork 更新迁移/失败恢复及固定标签边界见[指南](docs/GITHUB_NAMESPACE_MIGRATION.md)。
 
 - [ ] 现行说明无失效开发状态或旧接口行为；历史全文、来源及有效链接保留，旧摘要明确为日期快照。
