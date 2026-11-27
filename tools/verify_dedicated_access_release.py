@@ -12,6 +12,7 @@ from contextlib import closing
 ROOT = Path(__file__).resolve().parents[1]
 OLD_HEAD, NEW_HEAD = "c345de67fa89", "d456ef78ab90"
 NATIVE_HEAD = "e567fa89bc01"
+PERIOD_HEAD = "f678ab90cd12"
 
 
 def verify(xray=None):
@@ -46,7 +47,7 @@ import app.db.models
 old = sa.MetaData()
 excluded = {'nodes': {'access_mode', 'access_revision'}, 'hosts': {'node_id'}}
 for table in Base.metadata.sorted_tables:
-    if table.name.startswith('dedicated_node_') or table.name == 'user_entitlement_operations':
+    if table.name.startswith('dedicated_node_') or table.name in {'user_entitlement_operations', 'user_subscription_periods'}:
         continue
     columns = [column._copy() for column in table.columns if column.name not in excluded.get(table.name, set())]
     sa.Table(table.name, old, *columns)
@@ -92,7 +93,7 @@ engine.dispose()
             assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NEW_HEAD
             assert db.execute("SELECT COUNT(*) FROM dedicated_node_operations").fetchone()[0] == 1
             assert snapshot() == before
-            migrate("upgrade", "head")
+            migrate("upgrade", NATIVE_HEAD)
             assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NATIVE_HEAD
             assert snapshot() == before
             assert db.execute("SELECT COUNT(*) FROM user_entitlement_operations").fetchone()[0] == 0
@@ -100,9 +101,22 @@ engine.dispose()
             migrate("downgrade", NEW_HEAD)
             assert snapshot() == before
             migrate("upgrade", "head")
-            assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NATIVE_HEAD
+            assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == PERIOD_HEAD
+            assert db.execute("SELECT COUNT(*) FROM user_subscription_periods").fetchone()[0] == 0
+            assert snapshot() == before
+            migrate("downgrade", NATIVE_HEAD)
+            migrate("upgrade", "head")
+            db.execute("""INSERT INTO user_subscription_periods
+                (user_id,username,user_created_at,period_id,starts_at,base_quota_bytes) VALUES (?,?,?,?,?,?)""",
+                (1, "synthetic_user", "2026-01-01 00:00:00", "b52a564d-7ba5-449c-9ce8-09dbebe47c98", 1890000000, 10000))
+            db.commit()
+            result = migrate("downgrade", NATIVE_HEAD, success=False)
+            assert "Managed subscription periods exist" in result.stderr
+            assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == PERIOD_HEAD
+            assert db.execute("SELECT COUNT(*) FROM user_subscription_periods").fetchone()[0] == 1
+            assert snapshot() == before
     return {"migration": "passed", "head": NEW_HEAD, "data": "synthetic-only",
-            "native_entitlement_head": NATIVE_HEAD,
+            "native_entitlement_head": NATIVE_HEAD, "subscription_period_head": PERIOD_HEAD,
             "complete_historical_chain": os.name != "nt", "production_changed": False}
 
 

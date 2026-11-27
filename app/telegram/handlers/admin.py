@@ -805,7 +805,9 @@ def template_charge_command(call: types.CallbackQuery):
                 reply_markup=BotKeyboard.charge_add_or_reset(
                     username=username, template_id=template_id))
         elif (not user.data_limit and not user.expire) or (user.used_traffic > user.data_limit) or (now > datetime.fromtimestamp(user.expire)):
-            crud.reset_user_data_usage(db, db_user)
+            if crud.reset_user_data_usage(db, db_user) is None:
+                bot.answer_callback_query(call.id, "Use the subscription period API for this user.", show_alert=True)
+                return
             expire_date = None
             if template.expire_duration:
                 expire_date = today + relativedelta(seconds=template.expire_duration)
@@ -1567,7 +1569,9 @@ def confirm_user_command(call: types.CallbackQuery):
         username = call.data.split(":")[2]
         with GetDB() as db:
             db_user = crud.get_user(db, username)
-            crud.reset_user_data_usage(db, db_user)
+            if crud.reset_user_data_usage(db, db_user) is None:
+                bot.answer_callback_query(call.id, "Use the subscription period API for this user.", show_alert=True)
+                return
             if db_user.status in [UserStatus.active, UserStatus.on_hold]:
                 xray.operations.add_user(db_user)
             user = UserResponse.model_validate(db_user)
@@ -1624,7 +1628,9 @@ def confirm_user_command(call: types.CallbackQuery):
                 elif protocol in db_user.inbounds and protocol not in inbounds:
                     del proxies[protocol]
 
-            crud.reset_user_data_usage(db, db_user)
+            if crud.reset_user_data_usage(db, db_user) is None:
+                bot.answer_callback_query(call.id, "Use the subscription period API for this user.", show_alert=True)
+                return
             if data == 'charge_reset':
                 expire_date = None
                 if template.expire_duration:

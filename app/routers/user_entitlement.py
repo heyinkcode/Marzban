@@ -9,7 +9,7 @@ from app.db import user_entitlement as service
 from app.db.usage_continuity import utc
 from app.models.admin import Admin
 from app.models.user import UserStatus
-from app.models.user_entitlement import EntitlementApply, EntitlementCommand
+from app.models.user_entitlement import EntitlementApply, EntitlementOperation
 from app.routers.usage_continuity import _call
 
 router = APIRouter(prefix="/api/user/{username}/entitlement", tags=["User entitlement"])
@@ -34,7 +34,7 @@ def overview(username: str, response: Response, db: Session = Depends(get_db),
 
 
 @router.post("/preview")
-def preview(username: str, command: EntitlementCommand, response: Response, db: Session = Depends(get_db),
+def preview(username: str, command: EntitlementOperation, response: Response, db: Session = Depends(get_db),
             admin: Admin = Depends(Admin.get_current)):
     return _call(response, service.preview, db, username, command, admin)
 

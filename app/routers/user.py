@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app import logger, xray
 from app.db import Session, crud, get_db
+from app.db.usage_continuity import RecoveryError
 from app.dependencies import get_expired_users_list, get_validated_user, validate_dates
 from app.models.admin import Admin
 from app.models.user import (
@@ -110,7 +111,10 @@ def modify_user(
             )
 
     old_status = dbuser.status
-    dbuser = crud.update_user(db, dbuser, modified_user)
+    try:
+        dbuser = crud.update_user(db, dbuser, modified_user)
+    except RecoveryError as exc:
+        raise HTTPException(exc.status, detail=exc.detail) from exc
     user = UserResponse.model_validate(dbuser)
 
     if user.status in [UserStatus.active, UserStatus.on_hold]:
@@ -169,6 +173,8 @@ def reset_user_data_usage(
 ):
     """Reset user data usage"""
     dbuser = crud.reset_user_data_usage(db=db, dbuser=dbuser)
+    if dbuser is None:
+        raise HTTPException(409, detail={"code": "subscription_period_action_required"})
     if dbuser.status in [UserStatus.active, UserStatus.on_hold]:
         bg.add_task(xray.operations.add_user, dbuser=dbuser)
 

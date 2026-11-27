@@ -290,6 +290,23 @@ class UserEntitlementOperation(Base):
     receipt = Column(JSON, nullable=False)
 
 
+class UserSubscriptionPeriod(Base):
+    """Website-defined periods, tied to a specific account generation."""
+    __tablename__ = "user_subscription_periods"
+    __table_args__ = (
+        UniqueConstraint("user_id", "user_created_at", "period_id", name="uq_user_subscription_period"),
+        CheckConstraint("base_quota_bytes > 0 AND starts_at > 0", name="ck_user_subscription_period_terms"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    username = Column(String(34), nullable=False)
+    user_created_at = Column(DateTime(), nullable=False)
+    period_id = Column(String(36), nullable=False)
+    starts_at = Column(BigInteger, nullable=False)
+    base_quota_bytes = Column(BigInteger, nullable=False)
+
+
 class Proxy(Base):
     __tablename__ = "proxies"
 

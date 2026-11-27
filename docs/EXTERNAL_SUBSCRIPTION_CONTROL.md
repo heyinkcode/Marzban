@@ -29,6 +29,8 @@ Content-Type: application/json
 
 **交接前检查 `next_plan`。** [原生时间与流量修复](NATIVE_USER_ENTITLEMENT.md)区分省略与显式 `null`，未升级版本的普通 PUT 则可能清理未提供的下一套餐。任何版本的 `no_reset` 都不禁止另一个 next_plan 激活流程。遇到已有下一套餐应停止自动接管，由管理员明确处理，不能静默丢弃或恢复。网站端的版本检测和回执流程见[接入指南](WEBSITE_ENTITLEMENT_API.md)。
 
+此处仅说明原有 `no_reset` 交接。若需要按期号设置本期补偿、明确开启下一期且阻止旧重置入口，请改用独立的[订阅周期 API](WEBSITE_SUBSCRIPTION_PERIODS.md)。
+
 ## 从原生周期转交外部系统
 
 1. 记录用户身份、策略、准确到期时间、额度、当前/累计用量及可用重置历史；确认归属及无 next_plan。

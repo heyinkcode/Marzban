@@ -39,3 +39,18 @@ test('all four languages include each action, confirmation and unknown-result st
     for (const placeholder of ['id','date','quota']) assert.ok(strings['entitlement.resetDetail'].includes('{{' + placeholder + '}}'));
   }
 });
+
+test('reset policies are named 30 days and manual setup in every locale', () => {
+  const labels = {
+    zh: ['每 30 天', '手动设置[按订阅]'],
+    en: ['Every 30 days', 'Manual setup [by subscription]'],
+    fa: ['هر ۳۰ روز', 'تنظیم دستی [بر اساس اشتراک]'],
+    ru: ['Каждые 30 дней', 'Ручная настройка [по подписке]'],
+  };
+  for (const [locale, [monthly, manual]] of Object.entries(labels)) {
+    const strings = JSON.parse(fs.readFileSync(path.join(root, 'public/statics/locales', locale + '.json'), 'utf8'));
+    assert.equal(strings['userDialog.resetStrategyMonthly'], monthly);
+    assert.equal(strings['userDialog.resetStrategyNo'], manual);
+    assert.ok(strings['entitlement.legacy'].includes(manual));
+  }
+});

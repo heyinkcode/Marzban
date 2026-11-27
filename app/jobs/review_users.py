@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app import logger, scheduler, xray
 from app.db import (GetDB, get_notification_reminder, get_users,
                     start_user_expire, update_user_status, reset_user_by_next)
+from app.db.crud import mark_active_user_due
 from app.models.user import ReminderType, UserResponse, UserStatus
 from app.utils import report
 from app.utils.helpers import (calculate_expiration_days,
@@ -46,14 +47,16 @@ def add_notification_reminders(db: Session, user: "User", now: datetime = dateti
 def reset_user_by_next_report(db: Session, user: "User"):
     user = reset_user_by_next(db, user)
 
+    if user is None:
+        return
     xray.operations.update_user(user)
 
     report.user_data_reset_by_next(user=UserResponse.model_validate(user), user_admin=user.admin)
 
 
 def review():
-    now = datetime.utcnow()
-    now_ts = now.timestamp()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now_ts = int(now.replace(tzinfo=timezone.utc).timestamp())
     with GetDB() as db:
         for user in get_users(db, status=UserStatus.active):
 
@@ -71,17 +74,16 @@ def review():
                         reset_user_by_next_report(db, user)
                         continue
 
-            if limited:
-                status = UserStatus.limited
-            elif expired:
-                status = UserStatus.expired
-            else:
+            if not (limited or expired):
                 if WEBHOOK_ADDRESS:
                     add_notification_reminders(db, user, now)
                 continue
 
+            user = mark_active_user_due(db, user, now_ts)
+            if user is None or user.status not in (UserStatus.limited, UserStatus.expired):
+                continue
+            status = user.status
             xray.operations.remove_user(user)
-            update_user_status(db, user, status)
 
             report.status_change(username=user.username, status=status,
                                  user=UserResponse.model_validate(user), user_admin=user.admin)
