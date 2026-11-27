@@ -1,68 +1,44 @@
-# Contribute to Marzban
-Thanks for considering contributing to Marzban!
+# Contributing to the heyinkcode Marzban fork
 
-## Questions
+This fork is based on [Gozargah/Marzban](https://github.com/Gozargah/Marzban). Preserve upstream attribution and the [license](LICENSE). The [previous contribution guide](https://github.com/heyinkcode/Marzban/blob/23a977829603de3695b468e733499da9c7210e29/CONTRIBUTING.md) is preserved in the repository history as of 2026-11-27.
 
-Please don't ask your questions in issues. Instead, use one of the following ways to ask:
-- Ask on our telegram group: [@Gozargah_Marzban](https://t.me/gozargah_marzban)
-- Ask on our [GitHub Discussions](https://github.com/gozargah/marzban/discussions) for long term discussion or larger questions.
+## Propose a change
 
+1. Fork or clone this repository and create a topic branch from the current `master`.
+2. Keep the change focused. Update the relevant [documentation](docs/README.md) and tests. Use the [release workflow](docs/REPOSITORY_UPDATE_FLOW.md) for changes that affect Node, deployment scripts, configuration, APIs, or database migrations.
+3. Open a [pull request](https://github.com/heyinkcode/Marzban/pulls) targeting this fork's `master`. In the description, state the expected and actual behavior, how to reproduce the issue, affected versions, and what you tested. Name any checks you skipped and why.
 
-## Reporting issues
+If you include logs or configuration examples, remove passwords, tokens, subscription URLs, private keys, personal data, and production database contents. Use a test account and database for reproduction. For configuration changes, keep [`.env.example`](.env.example) and the [configuration guide](docs/CONFIGURATION.md) in sync; never commit a real `.env`.
 
-Include the following information in your post:
-- Describe what you expected to happen.
-- Describe what actually happened. Include server logs or any error that browser shows.
-- If possible, post your xray json config file and what you have set in env (by censoring critical information).
-- Also tell the version of Marzban, Xray and docker (if you use docker) you are using.
+## Project layout
 
+| Path | Contains |
+| --- | --- |
+| `app/` | FastAPI backend, including models, endpoints, jobs, and Alembic migrations |
+| `app/dashboard/` | React/TypeScript dashboard using Chakra UI |
+| `cli/` | Built-in management CLI. See the [CLI command reference](cli/README.md); deployment and updates use the [separate scripts repository](https://github.com/heyinkcode/Marzban-scripts). |
+| `xray_api/` | Internal Xray gRPC client, not the public Marzban HTTP API |
+| `tests/` and `docs/` | Regression tests and project documentation |
 
-# Submitting a Pull Request
-If there is not an open issue for what you want to submit, prefer opening one for discussion before working on a PR. You can work on any issue that doesn't have an open PR linked to it or a maintainer assigned to it. These show up in the sidebar. No need to ask if you can work on an issue that interests you.
+## Verify before opening a PR
 
-## Branches
-When starting development on this project, please make sure to create a new branch off the `dev` branch. This helps to keep the `master` branch stable and free of any development work that may not be complete or fully tested.
-
-## Project Structure
-```
-.
-├── app                      # Backend code (FastAPI - Python)
-│   └── dashboard            # Frontend code (React - Typescript)
-├── cli                      # CLI code (Typer - Python)
-└── xray_api                 # Client of Xray's gRPC API
-```
-
-## Backend
-Backend is built using FastAPI and uses SQLAlchemy as the ORM for database operations. All Pydantic models can be found in the `app/models` directory, while all database-related operations and models are in the `app/db` directory. The migration scripts for the database (Alembic) can be found in the `app/db/migrations` directory.
-
-### Python Code Formatting
-To maintain consistency in the codebase, we require all code to be formatted using 
-```bash
-autopep8 <file> --max-line-length 120
-```
-
-## Frontend
-Frontend is pre-built and served by FastAPI from the `app/dashboard/build` directory. To rebuild the frontend, first make sure you have the necessary dependencies installed by running `npm install` in the `app/dashboard` directory. Then, simply remove the `app/dashboard/build` directory and run the Python code again, and it will rebuild the frontend automatically.
-
-### Components Library
-Frontend uses `Chakra-UI` as the component library, so please adhere to the Chakra-UI approach when contributing. Strive to create components that are cohesive and serve a single purpose. Keep in mind that readability and maintainability are more important than brevity, so prioritize those factors when writing your code.
-
-## Marzban CLI
-Marzban CLI is built using [Typer](https://typer.tiangolo.com/), and its commands' code can be found in `cli`  directory. Its documentation is generated using [Typer CLI](https://typer.tiangolo.com/typer-cli/) which can be re-generated by navigating to project's root directory and running the following command (`typer-cli` package needs to be installed first):
+In an isolated Python 3.12 environment, run the backend suite from the repository root:
 
 ```bash
-$ PYTHONPATH=$(pwd) typer marzban-cli.py utils docs --name "" --output ./cli/README.md
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-## Debug Mode
-To run the project in debug mode with auto-reload, you can set the environment variable `DEBUG` to `true`. then by running the `main.py`, the backend and frontend will run separately on different ports.
+Some Xray integration tests require the pinned test binary. See the [Linux CI workflow](.github/workflows/build.yml) for those commands and the container-based migration check. With Node.js/npm available, run the dashboard checks from the repository root:
 
-Note that you must first install the necessary npm packages by running npm install inside the app/dashboard directory before running in debug mode.
 ```bash
 cd app/dashboard
-npm install
-cd ../..
+npm ci --ignore-scripts
+npm run test:locales
+npm exec tsc -- --noEmit
+VITE_BASE_API=/api/ npm exec vite -- build --outDir build --assetsDir statics
+cp build/index.html build/404.html
 ```
 
-If you run the project with debug mode off and delete the `app/dashboard/build` directory, the frontend will be rebuilt automatically on the next run. However, no rebuild will occur while inside debug mode."
+The dashboard commands above use a POSIX shell, as in CI. For UI changes, keep the existing Chakra components and verify the actual interface. Check [the release checklist](RELEASE_CHECKLIST.md) for changes that affect deployment; testing does not require updating a live server.
 
