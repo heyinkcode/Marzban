@@ -4,6 +4,7 @@
 
 | 功能 | 使用或维护说明 | 历史证据 |
 | --- | --- | --- |
+| 主控用户时间与流量（镜像已发布，服务器待验收） | [面板](../NATIVE_USER_ENTITLEMENT.md)、[网站 API](../WEBSITE_ENTITLEMENT_API.md) | [发布与验证](native-user-entitlement-20261127.md) |
 | 首次付款期恢复 v2（镜像已发布，生产待验收） | [独立合同](../USAGE_CONTINUITY_V2.md) | [验证与发布记录](usage-continuity-v2-20261112.md) |
 | 外部订阅控制（说明已发布，生产交接待验收） | [API 控制边界](../EXTERNAL_SUBSCRIPTION_CONTROL.md) | [验证记录](external-reset-control-20261112.md) |
 | 专线Node通用授权（镜像已发布，服务器待验收） | [接口合同](../DEDICATED_NODE_ACCESS.md) | [发布与验证](dedicated-node-access-20261030.md) |

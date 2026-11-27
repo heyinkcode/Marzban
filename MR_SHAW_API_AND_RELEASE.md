@@ -6,7 +6,7 @@
 
 ## 认证与边界
 
-主控原生 `/api/user/{username}/entitlement` 提供概览、无写入预览、带 UUID 的提交和只读回执，管理员可独立延期、增额或明确重置；受控补回只限 sudo。[用户时间与流量 API](docs/NATIVE_USER_ENTITLEMENT.md#api) · [网站后端接入示例](docs/WEBSITE_ENTITLEMENT_API.md)（未发布）。
+主控原生 `/api/user/{username}/entitlement` 提供概览、无写入预览、带 UUID 的提交和只读回执，管理员可独立延期、增额或明确重置；受控补回只限 sudo。[用户时间与流量 API](docs/NATIVE_USER_ENTITLEMENT.md#api) · [网站后端接入示例](docs/WEBSITE_ENTITLEMENT_API.md)（主控镜像已发布，实例需升级；[验证记录](docs/releases/native-user-entitlement-20261127.md)）。
 
 新增 sudo-only `/api/usage-continuity/v2` 的 GET preview、POST repairs、GET receipt；固定reason `restore_first_paid_period_reset`、付款期声明和单历史限制见[v2说明](docs/USAGE_CONTINUITY_V2.md)。主控镜像已发布；服务器升级后先GET核对capability，实际恢复需独立证据和授权；v1合同不变。
 

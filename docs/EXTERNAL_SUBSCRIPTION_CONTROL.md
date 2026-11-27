@@ -27,7 +27,7 @@ Content-Type: application/json
 
 保存后 `GET /api/user/{username}` 回读策略、到期时间和用量。既有 PUT 可能根据到期时间/上限调整用户状态，并安排后台 Xray/设备策略同步，不是纯元数据写入。
 
-**交接前检查 `next_plan`。** 开发中的[原生时间与流量修复](NATIVE_USER_ENTITLEMENT.md)区分省略与显式 `null`，未升级版本的普通 PUT 则可能清理未提供的下一套餐。任何版本的 `no_reset` 都不禁止另一个 next_plan 激活流程。遇到已有下一套餐应停止自动接管，由管理员明确处理，不能静默丢弃或恢复。网站端的版本检测和回执流程见[接入指南](WEBSITE_ENTITLEMENT_API.md)。
+**交接前检查 `next_plan`。** [原生时间与流量修复](NATIVE_USER_ENTITLEMENT.md)区分省略与显式 `null`，未升级版本的普通 PUT 则可能清理未提供的下一套餐。任何版本的 `no_reset` 都不禁止另一个 next_plan 激活流程。遇到已有下一套餐应停止自动接管，由管理员明确处理，不能静默丢弃或恢复。网站端的版本检测和回执流程见[接入指南](WEBSITE_ENTITLEMENT_API.md)。
 
 ## 从原生周期转交外部系统
 
