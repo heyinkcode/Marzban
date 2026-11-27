@@ -5,7 +5,7 @@ Functions for managing proxy hosts, users, user templates, nodes, and administra
 import hashlib
 import secrets
 from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -36,6 +36,7 @@ from app.db.models import (
     UserUsageRecovery,
 )
 from app.db.usage_accounting import lock_user_usage, UsageHistoryProtectedError
+from app.db.user_entitlement import status_for_entitlement
 from app.models.admin import AdminCreate, AdminModify, AdminPartialModify
 from app.models.node import NodeCreate, NodeModify, NodeStatus, NodeUsageResponse
 from app.models.proxy import ProxyHost as ProxyHostModify
@@ -464,6 +465,9 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
     Returns:
         User: The updated user object.
     """
+    if (modify.expire is not None or modify.data_limit is not None
+            or modify.data_limit_reset_strategy is not None or "next_plan" in modify.model_fields_set):
+        lock_user_usage(db, dbuser)
     added_proxies: Dict[ProxyTypes, Proxy] = {}
     if modify.proxies:
         for proxy_type, settings in modify.proxies.items():
@@ -492,35 +496,28 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
 
     if modify.data_limit is not None:
         dbuser.data_limit = (modify.data_limit or None)
-        if dbuser.status not in (UserStatus.expired, UserStatus.disabled):
-            if not dbuser.data_limit or dbuser.used_traffic < dbuser.data_limit:
-                if dbuser.status != UserStatus.on_hold:
-                    dbuser.status = UserStatus.active
-
-                for percent in sorted(NOTIFY_REACHED_USAGE_PERCENT, reverse=True):
-                    if not dbuser.data_limit or (calculate_usage_percent(
-                            dbuser.used_traffic, dbuser.data_limit) < percent):
-                        reminder = get_notification_reminder(db, dbuser.id, ReminderType.data_usage, threshold=percent)
-                        if reminder:
-                            delete_notification_reminder(db, reminder)
-
-            else:
-                dbuser.status = UserStatus.limited
+        if dbuser.status not in (UserStatus.expired, UserStatus.disabled) and (
+                not dbuser.data_limit or dbuser.used_traffic < dbuser.data_limit):
+            for percent in sorted(NOTIFY_REACHED_USAGE_PERCENT, reverse=True):
+                if not dbuser.data_limit or (calculate_usage_percent(
+                        dbuser.used_traffic, dbuser.data_limit) < percent):
+                    reminder = get_notification_reminder(db, dbuser.id, ReminderType.data_usage, threshold=percent)
+                    if reminder:
+                        db.delete(reminder)
 
     if modify.expire is not None:
         dbuser.expire = (modify.expire or None)
-        if dbuser.status in (UserStatus.active, UserStatus.expired):
-            if not dbuser.expire or dbuser.expire > datetime.utcnow().timestamp():
-                dbuser.status = UserStatus.active
-                for days_left in sorted(NOTIFY_DAYS_LEFT):
-                    if not dbuser.expire or (calculate_expiration_days(
-                            dbuser.expire) > days_left):
-                        reminder = get_notification_reminder(
-                            db, dbuser.id, ReminderType.expiration_date, threshold=days_left)
-                        if reminder:
-                            delete_notification_reminder(db, reminder)
-            else:
-                dbuser.status = UserStatus.expired
+        if dbuser.status not in (UserStatus.disabled, UserStatus.on_hold):
+            for days_left in sorted(NOTIFY_DAYS_LEFT):
+                if not dbuser.expire or calculate_expiration_days(dbuser.expire) > days_left:
+                    reminder = get_notification_reminder(
+                        db, dbuser.id, ReminderType.expiration_date, threshold=days_left)
+                    if reminder:
+                        db.delete(reminder)
+
+    if modify.expire is not None or modify.data_limit is not None:
+        dbuser.status = status_for_entitlement(dbuser.status, dbuser.expire, dbuser.used_traffic,
+                                             dbuser.data_limit, int(datetime.now(timezone.utc).timestamp()))
 
     if modify.note is not None:
         dbuser.note = modify.note or None
@@ -550,8 +547,8 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
             add_remaining_traffic=modify.next_plan.add_remaining_traffic,
             fire_on_either=modify.next_plan.fire_on_either,
         )
-    elif dbuser.next_plan is not None:
-        db.delete(dbuser.next_plan)
+    elif "next_plan" in modify.model_fields_set and dbuser.next_plan is not None:
+        dbuser.next_plan = None
 
     dbuser.edit_at = datetime.utcnow()
 

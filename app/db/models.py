@@ -274,6 +274,22 @@ class UserUsageRecovery(Base):
     receipt = Column(JSON, nullable=False)
 
 
+class UserEntitlementOperation(Base):
+    """Append-only receipts; no foreign key so account deletion preserves audit."""
+
+    __tablename__ = "user_entitlement_operations"
+
+    operation_id = Column(String(36), primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    username = Column(String(34), nullable=False)
+    user_created_at = Column(DateTime, nullable=False)
+    action = Column(String(16), nullable=False)
+    reset_id = Column(Integer, nullable=True)
+    payload_sha256 = Column(String(64), nullable=False)
+    recorded_at = Column(DateTime, nullable=False)
+    receipt = Column(JSON, nullable=False)
+
+
 class Proxy(Base):
     __tablename__ = "proxies"
 
