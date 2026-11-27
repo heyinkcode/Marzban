@@ -1,5 +1,7 @@
 # 扩展接口索引
 
+- 未发布的已续费额度延长期恢复合同：[独立 sudo 接口与回执边界](docs/USAGE_CONTINUITY_PAID_EXTENSION_PREVIEW.md)。
+
 分发所有者迁为 heyinkcode，API/认证/端口合同无变化；[升级边界](docs/GITHUB_NAMESPACE_MIGRATION.md)。
 
 本文只维护现行接口入口和副作用；完整字段、错误码、兼容条件见对应合同。历史 API 描述见[按功能归档](docs/releases/README.md)，不能当作现行合同。
