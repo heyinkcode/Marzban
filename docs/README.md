@@ -6,6 +6,9 @@ README 只介绍产品、安装和使用入口。功能、兼容边界、更新�
 
 ## 功能与使用
 
+- [用户时间与流量](NATIVE_USER_ENTITLEMENT.md)：原生延期、增额、显式重置、误重置补回。
+- [网站接入：到期时间与流量 API](WEBSITE_ENTITLEMENT_API.md)：后端读取、设置和回执重试。
+
 - [外部系统设置到期时间与流量重置控制权](EXTERNAL_SUBSCRIPTION_CONTROL.md)
 
 - [扩展功能概览](../FORK_FEATURES.md)
