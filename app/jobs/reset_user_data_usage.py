@@ -28,9 +28,9 @@ def reset_user_data_usage():
                                   UserDataLimitResetStrategy.year.value,
                               ]):
             last_reset_time = user.last_traffic_reset_time
-            num_days_to_reset = reset_strategy_to_days[user.data_limit_reset_strategy]
+            num_days_to_reset = reset_strategy_to_days.get(user.data_limit_reset_strategy)
 
-            if not (now - last_reset_time).days >= num_days_to_reset:
+            if num_days_to_reset is None or (now - last_reset_time).days < num_days_to_reset:
                 continue
 
             lock_user_usage(db, user)

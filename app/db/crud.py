@@ -37,16 +37,18 @@ from app.db.models import (
 )
 from app.db.usage_accounting import lock_user_usage, UsageHistoryProtectedError
 from app.db.user_entitlement import status_for_entitlement
+from app.db.subscription_periods import current_period, managed_account_exists
+from app.db.usage_continuity import RecoveryError
 from app.models.admin import AdminCreate, AdminModify, AdminPartialModify
 from app.models.node import NodeCreate, NodeModify, NodeStatus, NodeUsageResponse
 from app.models.proxy import ProxyHost as ProxyHostModify
+from app.models.proxy import ProxySettings
 from app.models.user import (
     ReminderType,
     DeviceLimitAction,
     UserCreate,
     UserDataLimitResetStrategy,
     UserModify,
-    UserResponse,
     UserStatus,
     UserUsageResponse,
 )
@@ -465,9 +467,23 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
     Returns:
         User: The updated user object.
     """
-    if (modify.expire is not None or modify.data_limit is not None
+    managed = False
+    if (modify.expire is not None or modify.data_limit is not None or modify.status is not None
+            or modify.on_hold_timeout is not None or modify.on_hold_expire_duration is not None
             or modify.data_limit_reset_strategy is not None or "next_plan" in modify.model_fields_set):
         lock_user_usage(db, dbuser)
+        managed = current_period(db, dbuser) is not None
+        if managed and (
+            (modify.expire is not None and (modify.expire or None) != dbuser.expire)
+            or (modify.data_limit is not None and (modify.data_limit or None) != dbuser.data_limit)
+            or modify.data_limit_reset_strategy not in (None, UserDataLimitResetStrategy.no_reset)
+            or modify.next_plan is not None
+            or modify.status == UserStatus.on_hold
+            or (modify.on_hold_timeout is not None and modify.on_hold_timeout != dbuser.on_hold_timeout)
+            or (modify.on_hold_expire_duration is not None and modify.on_hold_expire_duration != dbuser.on_hold_expire_duration)
+        ):
+            db.rollback()
+            raise RecoveryError("subscription_period_action_required")
     added_proxies: Dict[ProxyTypes, Proxy] = {}
     if modify.proxies:
         for proxy_type, settings in modify.proxies.items():
@@ -515,7 +531,7 @@ def update_user(db: Session, dbuser: User, modify: UserModify) -> User:
                     if reminder:
                         db.delete(reminder)
 
-    if modify.expire is not None or modify.data_limit is not None:
+    if modify.expire is not None or modify.data_limit is not None or managed and modify.status is not None:
         dbuser.status = status_for_entitlement(dbuser.status, dbuser.expire, dbuser.used_traffic,
                                              dbuser.data_limit, int(datetime.now(timezone.utc).timestamp()))
 
@@ -569,6 +585,9 @@ def reset_user_data_usage(db: Session, dbuser: User, *, due_at: datetime = None)
         User: The updated user object.
     """
     lock_user_usage(db, dbuser)
+    if current_period(db, dbuser) is not None:
+        db.rollback()
+        return None
     if due_at is not None:
         days = {"day": 1, "week": 7, "month": 30, "year": 365}.get(dbuser.data_limit_reset_strategy)
         if (days is None or dbuser.status not in (UserStatus.active, UserStatus.limited)
@@ -609,7 +628,7 @@ def reset_user_by_next(db: Session, dbuser: User) -> User:
     """
 
     lock_user_usage(db, dbuser)
-    if (dbuser.next_plan is None):
+    if dbuser.next_plan is None or current_period(db, dbuser) is not None:
         db.rollback()
         return
 
@@ -647,17 +666,16 @@ def revoke_user_sub(db: Session, dbuser: User) -> User:
     Returns:
         User: The updated user object.
     """
-    dbuser.sub_revoked_at = datetime.utcnow()
-
-    user = UserResponse.model_validate(dbuser)
-    for proxy_type, settings in user.proxies.copy().items():
+    proxies = {}
+    for proxy in dbuser.proxies:
+        settings = ProxySettings.from_dict(proxy.type, proxy.settings)
         settings.revoke()
-        user.proxies[proxy_type] = settings
-    dbuser = update_user(db, dbuser, user)
+        proxies[proxy.type] = settings.dict(no_obj=True)
 
-    db.commit()
-    db.refresh(dbuser)
-    return dbuser
+    # Credential rotation is not an edit of terms. Do not round-trip the
+    # full serialized user (which would include stale entitlement fields).
+    dbuser.sub_revoked_at = datetime.utcnow()
+    return update_user(db, dbuser, UserModify(proxies=proxies))
 
 
 def update_user_sub(db: Session, dbuser: User, user_agent: str) -> User:
@@ -881,6 +899,9 @@ def reset_all_users_data_usage(db: Session, admin: Optional[Admin] = None):
     # reset history cleared without losing its audit/lifetime invariant.
     with db.no_autoflush:
         query.update({User.used_traffic: User.used_traffic}, synchronize_session=False)
+        if query.filter(managed_account_exists()).first():
+            db.rollback()
+            raise UsageHistoryProtectedError("managed_subscription_history_protected")
         protected = query.join(UserUsageRecovery, and_(
             UserUsageRecovery.user_id == User.id,
             UserUsageRecovery.username == User.username,
@@ -1082,6 +1103,18 @@ def get_node_active_users(
         "active_users": int(active_users),
         "active_users_reason": None,
     }
+
+
+def mark_active_user_due(db: Session, dbuser: User, now_epoch: int) -> User | None:
+    """Recheck fresh terms after locking; a website may have opened the new period."""
+    lock_user_usage(db, dbuser)
+    if dbuser.status == UserStatus.active:
+        if dbuser.data_limit and dbuser.used_traffic >= dbuser.data_limit:
+            return update_user_status(db, dbuser, UserStatus.limited)
+        if dbuser.expire and dbuser.expire <= now_epoch:
+            return update_user_status(db, dbuser, UserStatus.expired)
+    db.rollback()
+    return None
 
 
 def update_user_status(db: Session, dbuser: User, status: UserStatus) -> User:

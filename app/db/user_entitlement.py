@@ -4,7 +4,12 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.db.models import NotificationReminder, User, UserEntitlementOperation, UserUsageRecovery, UserUsageResetLogs
+from app.db.models import (
+    NotificationReminder, User, UserEntitlementOperation, UserSubscriptionPeriod, UserUsageRecovery, UserUsageResetLogs,
+)
+from app.db.subscription_periods import (
+    MAX_EPOCH, PERIOD_ACTIONS, PERIOD_CAPABILITY, PERIOD_SECONDS, current_period, period_id_exists, period_view,
+)
 from app.db.usage_continuity import MAX_BYTES, RecoveryError, digest, enum_value, utc
 from app.models.user import ReminderType, UserStatus
 
@@ -54,7 +59,7 @@ def _latest_reset(db, user):
     if log is None:
         return None
     native = db.execute(select(UserEntitlementOperation.operation_id).where(
-        *_for_account(UserEntitlementOperation, user), UserEntitlementOperation.action == "renew",
+        *_for_account(UserEntitlementOperation, user), UserEntitlementOperation.action.in_(("renew", "open_period")),
         UserEntitlementOperation.reset_id == log.id).limit(1)).scalar_one_or_none()
     corrected = db.execute(select(UserUsageRecovery.operation_id).where(
         *_for_account(UserUsageRecovery, user), UserUsageRecovery.reset_id == log.id).limit(1)).scalar_one_or_none()
@@ -72,10 +77,67 @@ def _state(user):
     return _view(user, expires_at=user.expire, quota=user.data_limit, used=user.used_traffic, status=user.status)
 
 
+def _include_period(state, period, expires, quota):
+    if period is not None:
+        if not expires or quota is None or quota < period.base_quota_bytes:
+            raise RecoveryError("subscription_period_terms_invalid")
+        state["subscription_period"] = period_view(period, expires, quota)
+
+
 def get_overview(db, username, admin):
     user = _lookup(db, username, admin)
-    return {"username": user.username, "state": _state(user), "latest_reset": _latest_reset(db, user),
-            "can_restore": admin.is_sudo}
+    state = _state(user)
+    _include_period(state, current_period(db, user), user.expire, user.data_limit)
+    return {"username": user.username, "state": state, "latest_reset": _latest_reset(db, user),
+            "can_restore": admin.is_sudo, "subscription_period_capability": PERIOD_CAPABILITY,
+            "can_manage_subscription_period": admin.is_sudo}
+
+
+def _new_period(user, command, quota):
+    return UserSubscriptionPeriod(user_id=user.id, username=user.username, user_created_at=user.created_at,
+                                  period_id=command.period_id, starts_at=command.starts_at, base_quota_bytes=quota)
+
+
+def _project_period(db, user, period, command, now_epoch):
+    expires, quota, used = user.expire, user.data_limit, user.used_traffic
+    if user.next_plan is not None:
+        raise RecoveryError("next_plan_conflict")
+    if user.status == UserStatus.on_hold:
+        raise RecoveryError("subscription_period_on_hold")
+    if command.action == "attach_period":
+        if period is not None:
+            raise RecoveryError("subscription_period_already_attached")
+        if (not expires or not quota or not command.starts_at < expires
+                or not command.starts_at <= now_epoch or command.starts_at + PERIOD_SECONDS > MAX_EPOCH):
+            raise RecoveryError("subscription_period_attach_terms_invalid")
+        return _new_period(user, command, quota), expires, quota, used
+    if period is None:
+        raise RecoveryError("subscription_period_not_attached")
+    if command.action == "adjust_period":
+        if command.period_id != period.period_id:
+            raise RecoveryError("subscription_period_changed")
+        if expires <= now_epoch:
+            raise RecoveryError("subscription_period_not_active")
+        if command.expires_at is not None:
+            if command.expires_at <= expires:
+                raise RecoveryError("expiry_must_extend_finite_term")
+            expires = command.expires_at
+        if command.extra_bytes is not None:
+            extra = int(command.extra_bytes)
+            if extra > MAX_BYTES - quota:
+                raise RecoveryError("finite_quota_and_valid_increment_required")
+            quota += extra
+        return period, expires, quota, used
+    starts_at = command.starts_at
+    new_end = starts_at + PERIOD_SECONDS
+    if starts_at < expires or starts_at > now_epoch or not now_epoch < new_end <= MAX_EPOCH:
+        raise RecoveryError("subscription_period_start_invalid")
+    if period_id_exists(db, user, command.period_id):
+        raise RecoveryError("subscription_period_id_used")
+    quota = int(command.quota_bytes)
+    if not 0 < quota <= MAX_BYTES:
+        raise RecoveryError("invalid_counter")
+    return _new_period(user, command, quota), new_end, quota, 0
 
 
 def _project(db, user, command, now, admin):
@@ -88,6 +150,15 @@ def _project(db, user, command, now, admin):
     if not 0 <= used <= MAX_BYTES or quota is not None and not 0 <= quota <= MAX_BYTES:
         raise RecoveryError("invalid_counter")
     action = command.action
+    period = current_period(db, user)
+    _include_period(old, period, expires, quota)
+    projected_period = period
+    if action in PERIOD_ACTIONS:
+        if not admin.is_sudo:
+            raise RecoveryError("permission_denied", 403)
+        projected_period, expires, quota, used = _project_period(db, user, period, command, _epoch(now))
+    elif period is not None and action in ("extend", "add", "renew"):
+        raise RecoveryError("subscription_period_action_required", 409 if admin.is_sudo else 403)
     if action == "extend" or action == "renew" and command.expires_at is not None:
         if not expires or command.expires_at <= max(expires, _epoch(now)):
             raise RecoveryError("expiry_must_extend_finite_term")
@@ -111,20 +182,31 @@ def _project(db, user, command, now, admin):
             raise RecoveryError("restore_requires_active_term")
         if not latest or latest["id"] != command.reset_id or latest["restored"] or latest["origin"] == "native_renewal":
             raise RecoveryError("reset_not_restorable")
+        if period is not None:
+            reset_at = datetime.strptime(latest["reset_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            if _epoch(reset_at) < period.starts_at:
+                raise RecoveryError("reset_not_restorable")
         restored = int(latest["bytes"])
         if not quota or restored <= 0 or restored > MAX_BYTES - used or used + restored >= quota:
             raise RecoveryError("restore_would_reach_quota")
         used += restored
     after = _view(user, expires_at=expires, quota=quota, used=used,
-                  status=status_for_entitlement(user.status, expires, used, quota, _epoch(now)))
+                  status=(user.status if action == "attach_period" else
+                          status_for_entitlement(user.status, expires, used, quota, _epoch(now))))
+    if action in PERIOD_ACTIONS:
+        after["reset_strategy"] = "no_reset"
+    _include_period(after, projected_period, expires, quota)
     # Current traffic can grow between preview and confirmation. Only reserve
     # static terms, reset identity and the last successful native operation.
-    guard = digest({"user_id": user.id, "username": user.username, "created_at": utc(user.created_at),
+    guard_payload = {"user_id": user.id, "username": user.username, "created_at": utc(user.created_at),
                     "admin_id": user.admin_id, "expires_at": old["expires_at"], "quota_bytes": old["quota_bytes"],
                     "status": old["status"], "reset_strategy": old["reset_strategy"], "latest_reset": latest,
                     "next_plan": [user.next_plan.id, user.next_plan.expire, user.next_plan.data_limit,
                                   user.next_plan.fire_on_either, user.next_plan.add_remaining_traffic] if user.next_plan else None,
-                    "last_operation": last_op, "command": command.model_dump(mode="json")})
+                    "last_operation": last_op, "command": command.model_dump(mode="json")}
+    if action in PERIOD_ACTIONS or period is not None:
+        guard_payload["subscription_period"] = old.get("subscription_period")
+    guard = digest(guard_payload)
     return {"guard": guard, "before": old, "after": after, "restored_bytes": str(restored)}
 
 
@@ -151,10 +233,10 @@ def _refresh_reminders(db, user, action, now):
     for row in rows:
         if row.threshold is None:
             continue
-        if action in ("extend", "renew") and row.type == ReminderType.expiration_date and (
+        if action in ("extend", "renew", "open_period", "adjust_period") and row.type == ReminderType.expiration_date and (
                 not user.expire or user.expire - _epoch(now) > row.threshold * 86400):
             db.delete(row)
-        if action in ("add", "renew") and row.type == ReminderType.data_usage and (
+        if action in ("add", "renew", "open_period", "adjust_period") and row.type == ReminderType.data_usage and (
                 not user.data_limit or user.used_traffic * 100 < row.threshold * user.data_limit):
             db.delete(row)
 
@@ -163,6 +245,9 @@ def apply(db, username, request, admin):
     fingerprint = digest({"username": username, "body": request.model_dump(mode="json")})
     try:
         user = _lookup(db, username, admin, write=True)
+        action = request.command.action
+        if action in PERIOD_ACTIONS and not admin.is_sudo:
+            raise RecoveryError("permission_denied", 403)
         old_op = db.get(UserEntitlementOperation, request.operation_id)
         if old_op is not None:
             if not _same_account(old_op, user) or old_op.payload_sha256 != fingerprint:
@@ -170,30 +255,33 @@ def apply(db, username, request, admin):
             result = dict(old_op.receipt)
             db.rollback()
             return result
-        action = request.command.action
-        if action in ("renew", "restore") and not request.confirmed:
+        if action in ("renew", "restore", "attach_period", "open_period") and not request.confirmed:
             raise RecoveryError("explicit_confirmation_required")
         now = _now()
         projected = _project(db, user, request.command, now, admin)
         if projected["guard"] != request.guard:
             raise RecoveryError("entitlement_changed")
         before, after = projected["before"], projected["after"]
-        lifetime = user.lifetime_used_traffic if action in ("renew", "restore") else None
-        reset_id = request.command.reset_id
-        if action == "renew":
+        lifetime = user.lifetime_used_traffic if action in ("renew", "restore", "open_period") else None
+        reset_id = getattr(request.command, "reset_id", None)
+        if action in ("renew", "open_period"):
             log = UserUsageResetLogs(user=user, used_traffic_at_reset=user.used_traffic, reset_at=now)
             db.add(log)
             user.node_usages.clear()
             db.flush()
             reset_id = log.id
-        if action in ("extend", "renew"):
+        if action in ("extend", "renew", "open_period", "adjust_period"):
             user.expire = after["expires_at"]
-        if action == "add":
+        if action in ("add", "open_period", "adjust_period"):
             user.data_limit = int(after["quota_bytes"])
-        if action in ("renew", "restore"):
+        if action in ("renew", "restore", "open_period"):
             user.used_traffic = int(after["used_bytes"])
         if before["status"] != after["status"]:
             user.status = after["status"]
+        if action in PERIOD_ACTIONS:
+            user.data_limit_reset_strategy = "no_reset"
+        if action in ("attach_period", "open_period"):
+            db.add(_new_period(user, request.command, int(after["subscription_period"]["base_quota_bytes"])))
         if action != "restore":
             _refresh_reminders(db, user, action, now)
         result = {"operation_id": request.operation_id, "action": action, "username": user.username,
