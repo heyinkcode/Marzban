@@ -16,6 +16,8 @@
 
 ## 代码与测试
 
+- [ ] [用户时间与流量](docs/NATIVE_USER_ENTITLEMENT.md)：延期不刷新额度；已用完仍限流，加额保留已用，重置保留历史；旧策略与现有下一套餐不迁移；补回须核实来源和所属周期，核对作用域、回执重试与追加式迁移。
+
 - [ ] v2恢复验证：单历史与v1两历史互斥、显式付款证据/版本回执、并发增量与UUID竞态、接近quota拒绝、过期拒绝、未知结果只回查；部署后先GET探测，不自动执行客户修复。[v2合同](docs/USAGE_CONTINUITY_V2.md)
 
 - [ ] 外部控制交接核对 expire 精确保存、no_reset 不清零、锁内重查、交接前重置对账和 next_plan 前置检查；独立 month 用户不变，见[调用边界](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md)。

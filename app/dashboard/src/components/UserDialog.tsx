@@ -63,6 +63,8 @@ import { UsageFilter, createUsageConfig } from "./UsageFilter";
 import { ReloadIcon } from "./Filters";
 import classNames from "classnames";
 import { DedicatedUserAccessButton } from "./DedicatedAccessModal";
+import { UserEntitlementDialog } from "./UserEntitlementDialog";
+import { fetch } from "service/http";
 
 const AddUserIcon = chakra(UserPlusIcon, {
   baseStyle: {
@@ -257,6 +259,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
   const { colorMode } = useColorMode();
 
   const [usageVisible, setUsageVisible] = useState(false);
+  const [entitlementOpen, setEntitlementOpen] = useState(false);
   const handleUsageToggle = () => {
     setUsageVisible((current) => !current);
   };
@@ -367,16 +370,13 @@ export const UserDialog: FC<UserDialogProps> = () => {
   };
 
   const onClose = () => {
+    setEntitlementOpen(false);
     form.reset(getDefaultValues());
     onCreateUser(false);
     onEditingUser(null);
     setError(null);
     setUsageVisible(false);
     setUsageFilter("1m");
-  };
-
-  const handleResetUsage = () => {
-    useDashboard.setState({ resetUsageUser: editingUser });
   };
 
   const handleRevokeSubscription = () => {
@@ -403,6 +403,7 @@ export const UserDialog: FC<UserDialogProps> = () => {
   };
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <FormProvider {...form}>
@@ -950,9 +951,10 @@ export const UserDialog: FC<UserDialogProps> = () => {
                           <UserUsageIcon />
                         </IconButton>
                       </Tooltip>
-                      <Button onClick={handleResetUsage} size="sm">
-                        {t("userDialog.resetUsage")}
-                      </Button>
+                      <Tooltip label={t("entitlement.saveEditsFirst")} isDisabled={!form.formState.isDirty}>
+                        <span><Button type="button" onClick={() => setEntitlementOpen(true)} size="sm"
+                          isDisabled={loading || form.formState.isDirty}>{t("entitlement.title")}</Button></span>
+                      </Tooltip>
                       <Button onClick={handleRevokeSubscription} size="sm">
                         {t("userDialog.revokeSubscription")}
                       </Button>
@@ -981,5 +983,16 @@ export const UserDialog: FC<UserDialogProps> = () => {
         </ModalContent>
       </FormProvider>
     </Modal>
+    {editingUser && <UserEntitlementDialog
+      key={editingUser.username}
+      username={editingUser.username} isOpen={entitlementOpen} onClose={() => setEntitlementOpen(false)}
+      onUpdated={() => {
+        const username = editingUser.username;
+        void useDashboard.getState().refetchUsers();
+        void fetch<User>("/user/" + encodeURIComponent(username)).then(user => {
+          if (useDashboard.getState().editingUser?.username === username) onEditingUser(user);
+        }).catch(() => {});
+      }} />}
+    </>
   );
 };

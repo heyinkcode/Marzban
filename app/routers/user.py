@@ -97,9 +97,9 @@ def modify_user(
     - **note**: New optional text for additional user information or notes. `null` means no change.
     - **on_hold_timeout**: New UTC timestamp for when `on_hold` status should start or end. Only applicable if status is changed to 'on_hold'.
     - **on_hold_expire_duration**: New duration (in seconds) for how long the user should stay in `on_hold` status. Only applicable if status is changed to 'on_hold'.
-    - **next_plan**: Next user plan (resets after use).
+    - **next_plan**: Omit to keep it; send `null` to explicitly remove it.
 
-    Note: Fields set to `null` or omitted will not be modified.
+    Other fields set to `null` or omitted will not be modified. Editing expiry or quota never resets usage.
     """
 
     for proxy_type in modified_user.proxies:

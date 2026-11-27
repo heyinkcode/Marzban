@@ -6,6 +6,7 @@
 
 | 功能 | 用途与边界 | 使用说明 |
 | --- | --- | --- |
+| 用户时间与流量 | 主控原生延期、加额度、显式重置及受控误重置补回，支持面板和 API，无需外部网站 | [面板操作](docs/NATIVE_USER_ENTITLEMENT.md)、[网站接入](docs/WEBSITE_ENTITLEMENT_API.md) |
 | 外部订阅控制 | 既有 API 设置准确到期时间，no_reset 关闭原生周期；受控交接且不修改已用流量 | [接口与并发边界](docs/EXTERNAL_SUBSCRIPTION_CONTROL.md) |
 | 首次付款期恢复 v2 | sudo独立证据恢复一条首次正数重置，不增加额度；主控需升级，v1不变 | [窄合同](docs/USAGE_CONTINUITY_V2.md) |
 | 专线 Node 授权 | 原组件用户权限弹窗、独立节点模式设置；网站按管理员归属/委派开通，查询实际生效状态 | [面板入口与通用网站API](docs/DEDICATED_NODE_ACCESS.md) |

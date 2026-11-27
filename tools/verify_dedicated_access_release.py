@@ -11,6 +11,7 @@ from contextlib import closing
 
 ROOT = Path(__file__).resolve().parents[1]
 OLD_HEAD, NEW_HEAD = "c345de67fa89", "d456ef78ab90"
+NATIVE_HEAD = "e567fa89bc01"
 
 
 def verify(xray=None):
@@ -45,7 +46,7 @@ import app.db.models
 old = sa.MetaData()
 excluded = {'nodes': {'access_mode', 'access_revision'}, 'hosts': {'node_id'}}
 for table in Base.metadata.sorted_tables:
-    if table.name.startswith('dedicated_node_'):
+    if table.name.startswith('dedicated_node_') or table.name == 'user_entitlement_operations':
         continue
     columns = [column._copy() for column in table.columns if column.name not in excluded.get(table.name, set())]
     sa.Table(table.name, old, *columns)
@@ -72,16 +73,16 @@ engine.dispose()
                 return {table: sorted(db.execute('SELECT ' + ','.join('"' + column + '"' for column in columns)
                     + ' FROM "' + table + '"').fetchall(), key=repr) for table, columns in tables.items()}
             before = snapshot()
-            migrate("upgrade", "head")
+            migrate("upgrade", NEW_HEAD)
             assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NEW_HEAD
             assert snapshot() == before, "Existing user/config/counters changed"
             assert db.execute("SELECT access_mode,access_revision FROM nodes").fetchone() == ("public", 0)
             assert db.execute("SELECT node_id FROM hosts").fetchone() == (1,)
-            migrate("upgrade", "head")
+            migrate("upgrade", NEW_HEAD)
             assert snapshot() == before
             migrate("downgrade", OLD_HEAD)
             assert snapshot() == before
-            migrate("upgrade", "head")
+            migrate("upgrade", NEW_HEAD)
             db.execute("INSERT INTO dedicated_node_operations (operation_id,payload_sha256,node_id,user_id,username,user_created_at,granted,actor,revision,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
                 ("8c75b813-9304-490c-a09a-1298a7fe1e0b", "a" * 64, 1, 1, "synthetic_user", "2026-01-01 00:00:00", 1,
                  "synthetic_admin", 1, "2026-10-30 00:00:00"))
@@ -91,7 +92,17 @@ engine.dispose()
             assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NEW_HEAD
             assert db.execute("SELECT COUNT(*) FROM dedicated_node_operations").fetchone()[0] == 1
             assert snapshot() == before
+            migrate("upgrade", "head")
+            assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NATIVE_HEAD
+            assert snapshot() == before
+            assert db.execute("SELECT COUNT(*) FROM user_entitlement_operations").fetchone()[0] == 0
+            assert db.execute("SELECT COUNT(*) FROM dedicated_node_operations").fetchone()[0] == 1
+            migrate("downgrade", NEW_HEAD)
+            assert snapshot() == before
+            migrate("upgrade", "head")
+            assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == NATIVE_HEAD
     return {"migration": "passed", "head": NEW_HEAD, "data": "synthetic-only",
+            "native_entitlement_head": NATIVE_HEAD,
             "complete_historical_chain": os.name != "nt", "production_changed": False}
 
 
